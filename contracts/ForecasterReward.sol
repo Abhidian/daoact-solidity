@@ -19,13 +19,13 @@ contract ForecasterReward is Haltable {
 
   /* How many distinct addresses have invested */
   uint public investorCount = 0;
-  
+
   /* How many total investments have been made */
   uint public totalInvestments = 0;
-  
+
   /* Address of forecasters contract*/
   address public forecasters;
-  
+
   /* Address of pre-ico contract*/
   address public preICOContract;
 
@@ -37,12 +37,11 @@ contract ForecasterReward is Haltable {
   }
 
   /* Record of investments, can be traversed on base of totalInvestments */
-  Record[] public ledger; 
-  
+   Record[] public ledger;
+
   /** How much ETH each address has invested to this crowdsale */
   mapping (address => uint256) public investedAmountOf;
 
-  
   /** State machine
    *
    * - Prefunding: We have not passed start time yet
@@ -71,32 +70,32 @@ contract ForecasterReward is Haltable {
     if(_start == 0) {
       throw;
     }
-    
+
     startsAt = _start;
-    
+
     if(_end == 0) {
       throw;
     }
-    
+
     endsAt = _end;
 
     // Don't mess the blocks
     if(startsAt >= endsAt) {
       throw;
     }
-    
+
     if (_forecasters == 0){
       throw;
     }
-    
+
     if (_preICOContract == 0){
       throw;
     }
-    
+
     forecasters = _forecasters;
-    
+
     preICOContract = _preICOContract;
-    
+
   }
 
   /**
@@ -118,11 +117,11 @@ contract ForecasterReward is Haltable {
   function investInternal(address receiver) stopInEmergency inState(State.Funding) private {
 
     uint weiAmount = msg.value;
-    
+
     if (weiAmount == 0){
       throw;
     }
-    
+
     if(investedAmountOf[receiver] == 0) {
       // A new investor
       investorCount++;
@@ -133,7 +132,7 @@ contract ForecasterReward is Haltable {
 
     // Update investor
     investedAmountOf[receiver] = investedAmountOf[receiver].add(weiAmount);
-    
+
     // Up total accumulated fudns
     weiRaised = weiRaised.add(weiAmount);
 
@@ -198,10 +197,8 @@ contract ForecasterReward is Haltable {
     
     Transfer(forecasters,remaining);
   }
-  
-  /**
-   * Allow crowdsale owner to set addresses of beneficiaries of crowed sale
-   * 
+
+   /**
    * @param _forecaster The address of forecaster contract that receive 5% of funds
    * @param _preICO The address of preICO contract that receive 95% of funds
    */
@@ -238,7 +235,7 @@ contract ForecasterReward is Haltable {
   function fundingRaised() public constant returns (uint){
     return weiRaised;
   }
-  
+
   function availableFunding() public constant returns (uint){
       return this.balance;
   }
