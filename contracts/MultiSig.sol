@@ -1,6 +1,8 @@
 pragma solidity ^0.4.13;
 
-contract PreICO{
+import "SafeMath.sol";
+
+contract MultiSig{
   
   using SafeMath for uint256;
   
