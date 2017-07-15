@@ -3,6 +3,7 @@ const Tempo = require('@digix/tempo');
 const chai = require('chai');
 const { wait, waitUntilBlock } = require('@digix/tempo')(web3)
 assert = chai.assert;
+
 const state = {
   'PreFunding':0, 'Funding':1, 'Closed':2
 }
