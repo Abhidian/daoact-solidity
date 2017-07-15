@@ -31,7 +31,7 @@ contract MultiSig{
   // Administrator key updated
   event KeyReplaced(address oldKey,address newKey);
   
-  function PreICO(address[4] admins){
+  function MultiSig(address[4] admins){
     
     administrators[admins[0]] = true;
     administrators[admins[1]] = true;
