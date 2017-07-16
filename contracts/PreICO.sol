@@ -24,7 +24,7 @@ contract PreICO{
   }
   
   // count and record signers with ethers they agree to transfer
-  Transaction public  pending;
+  Transaction private  pending;
     
   // the number of administrator that must confirm the same operation before it is run.
   uint256 constant public required = 3;
@@ -51,11 +51,18 @@ contract PreICO{
   event KeyReplaced(address oldKey,address newKey);
   
   
-  function PreICO(){
-    administrators[0xca35b7d915458ef540ade6068dfe2f44e8fa733c] = true;
-    administrators[0x14723a09acff6d2a60dcdf7aa4aff308fddc160c] = true;
-    administrators[0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db] = true;
-    administrators[0x583031d1113ad414f02576bd6afabfb302140225] = true;
+  function PreICO(address admin1,address admin2,address admin3,address admin4){
+    administrators[admin1] = true;
+    
+    // all admins must have unique public keys
+    if (isAdministrator(admin2)) revert();
+    administrators[admin2] = true;
+    
+    if (isAdministrator(admin3)) revert();
+    administrators[admin3] = true;
+    
+    if (isAdministrator(admin4)) revert();
+    administrators[admin4] = true;
 
   }
   
@@ -163,7 +170,7 @@ contract PreICO{
     address newAddress;
   }
   
-  KeyUpdate public updating;
+  KeyUpdate private updating;
   
   /**
    * @dev Three admnistrator can replace key of fourth administrator. 
@@ -253,9 +260,4 @@ contract PreICO{
       }
       _;
   }
-  
-   function Balancee() public returns(uint balance){
-        return this.balance;
-    }
-  
 }
