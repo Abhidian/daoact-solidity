@@ -24,7 +24,7 @@ contract PreICO{
   }
   
   // count and record signers with ethers they agree to transfer
-  Transaction private pending;
+  Transaction public  pending;
     
   // the number of administrator that must confirm the same operation before it is run.
   uint256 constant public required = 3;
@@ -35,10 +35,14 @@ contract PreICO{
   event Deposit(address _from, uint256 value);
   
   // Funds transfer to other contract
-  event Transfer(address fristSigner, address secondSigner, address thirdSigner, address to,uint256 eth);
+  event Transfer(address indexed fristSigner, address indexed secondSigner, address indexed thirdSigner, address to,uint256 eth,bool success);
   
-  // Administrator successfully signs a transaction
-  event Confirmed(string action,address signer, uint256 remaining);
+  // Administrator successfully signs a fund transfer
+  event TransferConfirmed(address signer,uint256 amount,uint256 remainingConfirmations);
+  
+  // Administrator successfully signs a key update transaction
+  event UpdateConfirmed(address indexed signer,address indexed newAddress,uint256 remainingConfirmations);
+  
   
   // Administrator voilated consensus
   event Voilation(string action, address sender); 
@@ -47,11 +51,11 @@ contract PreICO{
   event KeyReplaced(address oldKey,address newKey);
   
   
-  function PreICO(address[4] admins){
-    administrators[admins[0]] = true;
-    administrators[admins[1]] = true;
-    administrators[admins[2]] = true;
-    administrators[admins[3]] = true;
+  function PreICO(){
+    administrators[0xca35b7d915458ef540ade6068dfe2f44e8fa733c] = true;
+    administrators[0x14723a09acff6d2a60dcdf7aa4aff308fddc160c] = true;
+    administrators[0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db] = true;
+    administrators[0x583031d1113ad414f02576bd6afabfb302140225] = true;
 
   }
   
@@ -67,10 +71,7 @@ contract PreICO{
     // input validations
     require( _to != 0x00 );
     require( ethers > 0 );
-    require( ethers >= this.balance);
-    
-    // verifications remaining
-    uint256 remaining;
+    require( this.balance >= ethers);
     
     // Start of signing process, first signer will finalize inputs for remaining two
     if(pending.confirmations == 0){
@@ -78,46 +79,53 @@ contract PreICO{
         pending.signer[pending.confirmations] = msg.sender;
         pending.eth = ethers;
         pending.confirmations = pending.confirmations.add(1);
-        remaining = required.sub(pending.confirmations);
-        Confirmed("Fund Transfer",msg.sender,remaining);
+        uint256 remaining = required.sub(pending.confirmations);
+        TransferConfirmed(msg.sender,ethers,remaining);
         return;
     
     }
     
     // Compare amount of ethers with previous confirmtaion
     if( pending.eth != ethers){
-        Voilation("Funds Transfer",msg.sender);
-        delete pending;  // abort signing process
+        transferVoilated();
         return;
     }
     
-    // make sure admin is not trying to spam
+    // make sure signer is not trying to spam
     if(msg.sender == pending.signer[0]){
-        Voilation("Funds Transfer",msg.sender);
-        delete pending;
+        transferVoilated();
         return;
     }
     
-    if( remaining == 1){
-        if(msg.sender != pending.signer[1]){
-            Voilation("Funds Transfer",msg.sender);
-            delete pending;
+    pending.signer[pending.confirmations] = msg.sender;
+    pending.confirmations = pending.confirmations.add(1);
+    remaining = required.sub(pending.confirmations);
+    
+    // make sure signer is not trying to spam
+    if( remaining == 0){
+        if(msg.sender == pending.signer[1]){
+            transferVoilated();
             return;
         }
     }
-  
-    pending.signer[pending.confirmations] = msg.sender;
-    pending.confirmations = pending.confirmations.add(1);
-    Confirmed("Fund Transfer",msg.sender,remaining);
+    
+    TransferConfirmed(msg.sender,ethers,remaining);
     
     // If three confirmation are done, trigger payout
     if (pending.confirmations == 3){
         if(_to.send(ethers)){
-            Transfer(pending.signer[0],pending.signer[1], pending.signer[2], _to,ethers);
+            Transfer(pending.signer[0],pending.signer[1], pending.signer[2], _to,ethers,true);
+        }else{
+            Transfer(pending.signer[0],pending.signer[1], pending.signer[2], _to,ethers,false);
         }
         delete pending;
     }
     
+  }
+  
+  function transferVoilated() private {
+    Voilation("Funds Transfer",msg.sender);
+    delete pending;
   }
   
   /**
@@ -155,7 +163,7 @@ contract PreICO{
     address newAddress;
   }
   
-  KeyUpdate private updating;
+  KeyUpdate public updating;
   
   /**
    * @dev Three admnistrator can replace key of fourth administrator. 
@@ -182,7 +190,7 @@ contract PreICO{
         updating.newAddress = _newAddress;
         updating.confirmations = updating.confirmations.add(1);
         remaining = required.sub(updating.confirmations);
-        Confirmed("Administrator key Update",msg.sender,remaining);
+        UpdateConfirmed(msg.sender,_newAddress,remaining);
         return;
         
     }
@@ -217,7 +225,7 @@ contract PreICO{
     
     updating.signer[updating.confirmations] = msg.sender;
     updating.confirmations = updating.confirmations.add(1);
-    Confirmed("Administrator key Update",msg.sender,remaining);
+    UpdateConfirmed(msg.sender,_newAddress,remaining);
     
     // if three confirmation are done, register new admin and remove old one
     if( updating.confirmations == 3 ){
@@ -245,5 +253,9 @@ contract PreICO{
       }
       _;
   }
+  
+   function Balancee() public returns(uint balance){
+        return this.balance;
+    }
   
 }
