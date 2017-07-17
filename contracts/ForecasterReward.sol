@@ -69,7 +69,7 @@ contract ForecasterReward is Haltable {
   /**
    * Allow investor to just send in money
    */
-  function() nonZero {
+  function() nonZero payable{
     buy(msg.sender);
   }
 
@@ -82,7 +82,7 @@ contract ForecasterReward is Haltable {
    * @param receiver The Ethereum address who have invested
    *
    */
-  function buy(address receiver) stopInEmergency inState(State.Funding) public nonZero payable{
+  function buy(address receiver) stopInEmergency inState(State.Funding) nonZero public payable{
     require(receiver != 0x00);
     
     uint weiAmount = msg.value;
@@ -102,7 +102,7 @@ contract ForecasterReward is Haltable {
     weiRaised = weiRaised.add(weiAmount);
     
     // Pocket the money
-    if(distributeFunds()) revert();
+    if(!distributeFunds()) revert();
     
     // Tell us invest was success
     Invested(totalInvestments, receiver, weiAmount);
@@ -188,7 +188,7 @@ contract ForecasterReward is Haltable {
   function setEndsAt(uint _endsAt) onlyOwner {
     
     // Don't change past
-    require(now > _endsAt);
+    require(_endsAt > now);
 
     endsAt = _endsAt;
     EndsAtChanged(_endsAt);
@@ -233,3 +233,4 @@ contract ForecasterReward is Haltable {
     _;
   }
 }
+
