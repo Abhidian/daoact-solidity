@@ -3,25 +3,24 @@ pragma solidity ^0.4.13;
 import './Haltable.sol';
 import './SafeMath.sol';
 
-
 contract ForecasterReward is Haltable {
 
   using SafeMath for uint;
 
   /* the starting time of the crowdsale */
-  uint public startsAt;
+  uint private startsAt;
 
   /* the ending time of the crowdsale */
-  uint public endsAt;
+  uint private endsAt;
 
   /* How many wei of funding we have received so far */
   uint private weiRaised = 0;
 
   /* How many distinct addresses have invested */
-  uint public investorCount = 0;
+  uint private investorCount = 0;
   
   /* How many total investments have been made */
-  uint public totalInvestments = 0;
+  uint private totalInvestments = 0;
   
   /* Address of forecasters contract*/
   address private forecasters;
@@ -110,27 +109,50 @@ contract ForecasterReward is Haltable {
   }
 
   /**
-   * Change address of multi signature wallet
-   * @param _newAddress Address of multisig wallet
+   * @return forecasters Address of forecaster reward contract
    */
-  function setMultiSig(address _newAddress) onlyOwner{
-      require(_newAddress != 0x00);
-      
-  }
-  
   function forecastersAddress() public constant returns( address forecasters){
       return forecasters;
   }
   
+  /**
+   * @return preICO Address of PreICO Wallet contract
+   */
   function preICOAddress() public constant returns(address preICO ){
       return preICOContract;
   }
   
+  /**
+   * @return startDate Crowdsale opening date
+   */
+  function fundingStartAt() public constant returns(uint startDate ){
+      return startsAt;
+  }
   
   /**
-   * Finalize a succcesful crowdsale.
-   *
-   * The owner can triggre a call the contract that provides post-crowdsale actions, like releasing the tokens.
+   * @return endDate Crowdsale closing date
+   */
+  function fundingEndsAt() public constant returns(uint endDate ){
+      return endsAt;
+  }
+  
+  /**
+   * @return investors Total of distinct investors
+   */
+  function distinctInvestors() public constant returns(uint investors){
+      return investorCount;
+  }
+  
+  /**
+   * @return investments Crowdsale closing date
+   */
+  function investments() public constant returns(uint investments){
+      return totalInvestments;
+  }
+  
+  
+  /**
+   * Send out contributions imediately
    */
   function distributeFunds() private returns(bool){
    
@@ -210,7 +232,4 @@ contract ForecasterReward is Haltable {
     require(msg.value > 0);
     _;
   }
-
-
-
 }
