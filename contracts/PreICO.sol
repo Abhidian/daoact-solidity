@@ -1,6 +1,6 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.13;
 
-import "SafeMath.sol";
+import "./SafeMath.sol";
 
 /**
  * PreICO is designed to hold funds of pre ico. Account is controlled by four administratos. To trigger a payout

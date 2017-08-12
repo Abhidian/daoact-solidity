@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.13;
 
 import './Haltable.sol';
 import './SafeMath.sol';
@@ -50,14 +50,20 @@ contract ForecasterReward is Haltable {
   // Crowdsale end time has been changed
   event EndsAtChanged(uint endsAt);
 
-  function ForecasterReward(address _owner,uint _start, uint _end, address _forecasters, address _preICOContract) {
+  function ForecasterReward(
+      address _owner,
+      uint _start, 
+      uint _end, 
+      address _forecasters, 
+      address _preICOContract) 
+  {
     
     require(_owner != 0x00);
     require(_forecasters != 0x00);
     require(_preICOContract != 0);
-    require(_start >= now);
-    require(_end >= _start);
-    
+    require(_start >= block.number); // I think starting block should have offset for 1-2 blocks just in casse miners skip contract
+    require(_end  >= _start); // I think end block should have offset for like 10 blocks mininum
+     
     owner = _owner;
     forecasters = _forecasters;
     preICOContract = _preICOContract;
@@ -111,28 +117,28 @@ contract ForecasterReward is Haltable {
   /**
    * @return forecasters Address of forecaster reward contract
    */
-  function forecastersAddress() public constant returns( address forecasters){
+  function forecastersAddress() public constant returns(address){
       return forecasters;
   }
   
   /**
    * @return preICO Address of PreICO Wallet contract
    */
-  function preICOAddress() public constant returns(address preICO ){
+  function preICOAddress() public constant returns(address){
       return preICOContract;
   }
   
   /**
    * @return startDate Crowdsale opening date
    */
-  function fundingStartAt() public constant returns(uint startDate ){
+  function fundingStartAt() public constant returns(uint ){
       return startsAt;
   }
   
   /**
    * @return endDate Crowdsale closing date
    */
-  function fundingEndsAt() public constant returns(uint endDate ){
+  function fundingEndsAt() public constant returns(uint ){
       return endsAt;
   }
   
@@ -208,9 +214,9 @@ contract ForecasterReward is Haltable {
    * We make it a function and do not assign the result to a variable, so there is no chance of the variable being stale.
    */
   function getState() public constant returns (State) {
-    if (now < startsAt) return State.PreFunding;
-    else if (now <= endsAt) return State.Funding;
-    else if (now > endsAt) return State.Closed;
+    if (block.number < startsAt) return State.PreFunding;
+    else if (block.number <= endsAt) return State.Funding;
+    else if (block.number > endsAt) return State.Closed;
   }
 
   /** Interface marker. */
