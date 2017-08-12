@@ -94,7 +94,7 @@ contract("ForecasterReward", (accounts) =>
             
         });
 
-        it("Testing Incorrect start/end block numbers", async()=>
+        it("Testing Incorrect start/end time stamps", async()=>
         {
             let blockNumber = web3.eth.blockNumber;
 
@@ -170,6 +170,93 @@ contract("ForecasterReward", (accounts) =>
                 forecaster, 
                 preICO);
         });
+
+        it("Testing fallback function", async()=>
+        {
+            let investment = web3.toWei(1, "ether");
+
+            //Start Funding state
+            await wait(startTime - lastBlockTimeInSec() + 10);
+
+            expect((await fr.getState()).toNumber(),
+                "State should be Funding")
+                .to.deep.equal(state["Funding"]);
+            
+            await fr.sendTransaction({value:investment, from:investor0});
+            await fr.sendTransaction({value:investment, from:investor1});
+            
+            expect((await fr.distinctInvestors()).toNumber(), "Should be 2 investors").to.equal(2);
+            expect((await fr.investments()).toNumber(), "Should be 2 investments").to.equal(2);
+            expect((await fr.fundingRaised()).toNumber(), "Should be 2 ethers").to.equal(2*investment);
+        })
+
+        it("Should not allow buying with empty pockets", async()=>
+        {
+            let investment = 0;
+
+            //Start Funding state
+            await wait(startTime - lastBlockTimeInSec() + 10);
+
+            expect((await fr.getState()).toNumber(),
+                "State should be Funding")
+                .to.deep.equal(state["Funding"]);
+
+            expect(await expectThrow(fr.buy(investor0, {value:investment, from:investor0})),
+                "Buying with with 0 ethers sent")
+                .to.be.true;
+
+            expect(await expectThrow(fr.buy(investor1, {value:investment, from:investor1})),
+                "Buying with with 0 ethers sent")
+                .to.be.true;
+        })
+        
+        it("Should extend end time", async()=>
+        {
+            let investment = web3.toWei(1, "ether");
+
+            //Start Funding state
+            await wait(startTime - lastBlockTimeInSec() + 10);
+
+            expect((await fr.getState()).toNumber(),
+                "State should be Funding")
+                .to.deep.equal(state["Funding"]);
+            
+            // Test buying
+
+            await fr.buy(investor0, {value:investment, from:investor0});
+            await fr.buy(investor0, {value:investment, from:investor0});
+            await fr.buy(investor1, {value:investment, from:investor1});
+
+            expect((await fr.distinctInvestors()).toNumber(), "Should be 2 investors").to.equal(2);
+            expect((await fr.investments()).toNumber(), "Should be 3 investments").to.equal(3);
+            expect((await fr.fundingRaised()).toNumber(), "Should be 3 ethers").to.equal(3*investment);
+
+            // Traverse to closed
+            await wait(endTime - lastBlockTimeInSec() + 10);
+            expect((await fr.getState()).toNumber()).to.deep.equal(state["Closed"]);
+
+            // Try buying should be not allowed
+            expect(await expectThrow(fr.buy(investor0, {value:investment, from:investor0})),
+                "Buying after state is Closed")
+                .to.be.true;
+
+            // Extend end time
+            let newEndTime = lastBlockTimeInSec() + endTimeOffset;
+            await fr.setEndsAt(newEndTime);
+
+            expect((await fr.fundingEndsAt()).toNumber(), 
+                "End Time incorrect/not set")
+                .to.equal(newEndTime);
+            
+            // Buying should be allowed again
+            await fr.buy(investor0, {value:investment, from:investor0});
+            await fr.buy(investor0, {value:investment, from:investor0});
+            await fr.buy(investor1, {value:investment, from:investor1});
+
+            expect((await fr.distinctInvestors()).toNumber(), "Should be 2 investors").to.equal(2);
+            expect((await fr.investments()).toNumber(), "Should be 6 investments").to.equal(6);
+            expect((await fr.fundingRaised()).toNumber(), "Should be 6 ethers").to.equal(6*investment);
+        })
 
         it("Try Sending in halt mode", async()=>
         {

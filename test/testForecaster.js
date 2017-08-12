@@ -154,7 +154,7 @@ contract("ForecasterReward", function (accounts) {
                     }
                 });
             }); });
-            it("Testing Incorrect start/end block numbers", function () { return __awaiter(_this, void 0, void 0, function () {
+            it("Testing Incorrect start/end time stamps", function () { return __awaiter(_this, void 0, void 0, function () {
                 var blockNumber, _a, _b;
                 return __generator(this, function (_c) {
                     switch (_c.label) {
@@ -273,6 +273,172 @@ contract("ForecasterReward", function (accounts) {
                             return [4 /*yield*/, ForecasterReward.new(owner, startTime, endTime, forecaster, preICO)];
                         case 1:
                             fr = _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Testing fallback function", function () { return __awaiter(_this, void 0, void 0, function () {
+                var investment, _a, _b, _c, _d;
+                return __generator(this, function (_e) {
+                    switch (_e.label) {
+                        case 0:
+                            investment = web3.toWei(1, "ether");
+                            //Start Funding state
+                            return [4 /*yield*/, wait(startTime - lastBlockTimeInSec() + 10)];
+                        case 1:
+                            //Start Funding state
+                            _e.sent();
+                            _a = chai_1.expect;
+                            return [4 /*yield*/, fr.getState()];
+                        case 2:
+                            _a.apply(void 0, [(_e.sent()).toNumber(),
+                                "State should be Funding"])
+                                .to.deep.equal(state["Funding"]);
+                            return [4 /*yield*/, fr.sendTransaction({ value: investment, from: investor0 })];
+                        case 3:
+                            _e.sent();
+                            return [4 /*yield*/, fr.sendTransaction({ value: investment, from: investor1 })];
+                        case 4:
+                            _e.sent();
+                            _b = chai_1.expect;
+                            return [4 /*yield*/, fr.distinctInvestors()];
+                        case 5:
+                            _b.apply(void 0, [(_e.sent()).toNumber(), "Should be 2 investors"]).to.equal(2);
+                            _c = chai_1.expect;
+                            return [4 /*yield*/, fr.investments()];
+                        case 6:
+                            _c.apply(void 0, [(_e.sent()).toNumber(), "Should be 2 investments"]).to.equal(2);
+                            _d = chai_1.expect;
+                            return [4 /*yield*/, fr.fundingRaised()];
+                        case 7:
+                            _d.apply(void 0, [(_e.sent()).toNumber(), "Should be 2 ethers"]).to.equal(2 * investment);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Should not allow buying with empty pockets", function () { return __awaiter(_this, void 0, void 0, function () {
+                var investment, _a, _b, _c;
+                return __generator(this, function (_d) {
+                    switch (_d.label) {
+                        case 0:
+                            investment = 0;
+                            //Start Funding state
+                            return [4 /*yield*/, wait(startTime - lastBlockTimeInSec() + 10)];
+                        case 1:
+                            //Start Funding state
+                            _d.sent();
+                            _a = chai_1.expect;
+                            return [4 /*yield*/, fr.getState()];
+                        case 2:
+                            _a.apply(void 0, [(_d.sent()).toNumber(),
+                                "State should be Funding"])
+                                .to.deep.equal(state["Funding"]);
+                            _b = chai_1.expect;
+                            return [4 /*yield*/, index_1.expectThrow(fr.buy(investor0, { value: investment, from: investor0 }))];
+                        case 3:
+                            _b.apply(void 0, [_d.sent(),
+                                "Buying with with 0 ethers sent"])
+                                .to.be.true;
+                            _c = chai_1.expect;
+                            return [4 /*yield*/, index_1.expectThrow(fr.buy(investor1, { value: investment, from: investor1 }))];
+                        case 4:
+                            _c.apply(void 0, [_d.sent(),
+                                "Buying with with 0 ethers sent"])
+                                .to.be.true;
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Should extend end time", function () { return __awaiter(_this, void 0, void 0, function () {
+                var investment, _a, _b, _c, _d, _e, _f, newEndTime, _g, _h, _j, _k;
+                return __generator(this, function (_l) {
+                    switch (_l.label) {
+                        case 0:
+                            investment = web3.toWei(1, "ether");
+                            //Start Funding state
+                            return [4 /*yield*/, wait(startTime - lastBlockTimeInSec() + 10)];
+                        case 1:
+                            //Start Funding state
+                            _l.sent();
+                            _a = chai_1.expect;
+                            return [4 /*yield*/, fr.getState()];
+                        case 2:
+                            _a.apply(void 0, [(_l.sent()).toNumber(),
+                                "State should be Funding"])
+                                .to.deep.equal(state["Funding"]);
+                            // Test buying
+                            return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
+                        case 3:
+                            // Test buying
+                            _l.sent();
+                            return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
+                        case 4:
+                            _l.sent();
+                            return [4 /*yield*/, fr.buy(investor1, { value: investment, from: investor1 })];
+                        case 5:
+                            _l.sent();
+                            _b = chai_1.expect;
+                            return [4 /*yield*/, fr.distinctInvestors()];
+                        case 6:
+                            _b.apply(void 0, [(_l.sent()).toNumber(), "Should be 2 investors"]).to.equal(2);
+                            _c = chai_1.expect;
+                            return [4 /*yield*/, fr.investments()];
+                        case 7:
+                            _c.apply(void 0, [(_l.sent()).toNumber(), "Should be 3 investments"]).to.equal(3);
+                            _d = chai_1.expect;
+                            return [4 /*yield*/, fr.fundingRaised()];
+                        case 8:
+                            _d.apply(void 0, [(_l.sent()).toNumber(), "Should be 3 ethers"]).to.equal(3 * investment);
+                            // Traverse to closed
+                            return [4 /*yield*/, wait(endTime - lastBlockTimeInSec() + 10)];
+                        case 9:
+                            // Traverse to closed
+                            _l.sent();
+                            _e = chai_1.expect;
+                            return [4 /*yield*/, fr.getState()];
+                        case 10:
+                            _e.apply(void 0, [(_l.sent()).toNumber()]).to.deep.equal(state["Closed"]);
+                            // Try buying should be not allowed
+                            _f = chai_1.expect;
+                            return [4 /*yield*/, index_1.expectThrow(fr.buy(investor0, { value: investment, from: investor0 }))];
+                        case 11:
+                            // Try buying should be not allowed
+                            _f.apply(void 0, [_l.sent(),
+                                "Buying after state is Closed"])
+                                .to.be.true;
+                            newEndTime = lastBlockTimeInSec() + endTimeOffset;
+                            return [4 /*yield*/, fr.setEndsAt(newEndTime)];
+                        case 12:
+                            _l.sent();
+                            _g = chai_1.expect;
+                            return [4 /*yield*/, fr.fundingEndsAt()];
+                        case 13:
+                            _g.apply(void 0, [(_l.sent()).toNumber(),
+                                "End Time incorrect/not set"])
+                                .to.equal(newEndTime);
+                            // Buying should be allowed again
+                            return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
+                        case 14:
+                            // Buying should be allowed again
+                            _l.sent();
+                            return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
+                        case 15:
+                            _l.sent();
+                            return [4 /*yield*/, fr.buy(investor1, { value: investment, from: investor1 })];
+                        case 16:
+                            _l.sent();
+                            _h = chai_1.expect;
+                            return [4 /*yield*/, fr.distinctInvestors()];
+                        case 17:
+                            _h.apply(void 0, [(_l.sent()).toNumber(), "Should be 2 investors"]).to.equal(2);
+                            _j = chai_1.expect;
+                            return [4 /*yield*/, fr.investments()];
+                        case 18:
+                            _j.apply(void 0, [(_l.sent()).toNumber(), "Should be 6 investments"]).to.equal(6);
+                            _k = chai_1.expect;
+                            return [4 /*yield*/, fr.fundingRaised()];
+                        case 19:
+                            _k.apply(void 0, [(_l.sent()).toNumber(), "Should be 6 ethers"]).to.equal(6 * investment);
                             return [2 /*return*/];
                     }
                 });
