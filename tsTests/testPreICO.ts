@@ -40,7 +40,7 @@ contract("PreICO", (accounts) =>
             pr = await PreICO.new(king, queen, jack, ace);
 
             expect(await pr.isAdministrator(king), "King incorrect/not set").to.be.true;
-            expect(await pr.isAdministrator(queen), "Queen incorrect/not set").to.be.truue;
+            expect(await pr.isAdministrator(queen), "Queen incorrect/not set").to.be.true;
             expect(await pr.isAdministrator(jack), "Jack incorrect/not set").to.be.true;
             expect(await pr.isAdministrator(ace), "Ace incorrect/not set").to.be.true;
         })
@@ -107,7 +107,7 @@ contract("PreICO", (accounts) =>
         })  
     })
 
-    describe("Penetrating transfer function", async()=>
+    describe.only("Penetrating transfer function", async()=>
     {
         before(async()=>
         {
@@ -131,7 +131,7 @@ contract("PreICO", (accounts) =>
                 .to.be.true;
         })
 
-        it.only("Should correctly transfer funds to address", async()=>
+        it("Should correctly transfer funds to address", async()=>
         {
             // Add funds to contract address
             expect(() => SendWei(joker, pr.address, amount),  // send 1 ether
@@ -149,5 +149,68 @@ contract("PreICO", (accounts) =>
                 "Transfer should've increase balance")
                 .to.equal(+balance + +amount);        
         })
+
+        describe("Invoking transfer violations", async()=>
+        {
+            beforeEach(async()=>
+            {
+                pr = await PreICO.new(king, queen, jack, ace);
+                
+                expect(() => SendWei(joker, pr.address, amount),  // send 1 ether
+                    "Balance was not increased") 
+                    .to.increase(() => GetBalance(pr.address))    // check balance
+                    .by(amount);
+            })
+            
+            it("Sending different amount of ether", async()=>
+            {            
+                let balance = GetBalance(magpie);
+                
+                await pr.transfer(magpie, amount, {from: king});
+
+                expect(await expectThrow(pr.transfer(magpie, amount*2, {from: queen})),
+                    "Expected throw because amount is different")
+                    .to.be.true;
+                    
+                await pr.transfer(magpie, amount, {from: jack}); 
+                
+                expect(await expectThrow(pr.transfer(magpie, amount*2, {from: jack})),
+                    "Expected throw because amount is different")
+                    .to.be.true;
+
+                await pr.transfer(magpie, amount, {from: queen});
+
+                expect(GetBalance(magpie),
+                    "Transfer should've increase balance")
+                    .to.equal(+balance + +amount);     
+            })
+
+            it("Trying to spam", async()=>
+            {
+                let balance = GetBalance(magpie);
+                
+                await pr.transfer(magpie, amount, {from: king});
+                await pr.transfer(magpie, amount, {from: king});
+
+                /*expect(await expectThrow(pr.transfer(magpie, amount, {from: king})),
+                    "Expected to throw because spamming")
+                    .to.be.true;*/
+                
+                // Previous transfer confirmation sequence - need to start from begining 
+                await pr.transfer(magpie, amount, {from: king});
+                await pr.transfer(magpie, amount, {from: jack}); 
+                await pr.transfer(magpie, amount, {from: queen}); 
+
+                expect(GetBalance(magpie),
+                    "Transfer should've increase balance")
+                    .to.equal(+balance + +amount);  
+
+                // TODO: strange behaviour if sending inncorret amount it throws
+                // but if I spam it does not throw (expected no throw in either way)
+            })
+        })
+
+
+        
     })
 })

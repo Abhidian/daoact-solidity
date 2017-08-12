@@ -80,7 +80,7 @@ contract("PreICO", function (accounts) {
                             _b = chai_1.expect;
                             return [4 /*yield*/, pr.isAdministrator(queen)];
                         case 3:
-                            _b.apply(void 0, [_e.sent(), "Queen incorrect/not set"]).to.be.truue;
+                            _b.apply(void 0, [_e.sent(), "Queen incorrect/not set"]).to.be.true;
                             _c = chai_1.expect;
                             return [4 /*yield*/, pr.isAdministrator(jack)];
                         case 4:
@@ -197,7 +197,7 @@ contract("PreICO", function (accounts) {
             return [2 /*return*/];
         });
     }); });
-    describe("Penetrating transfer function", function () { return __awaiter(_this, void 0, void 0, function () {
+    describe.only("Penetrating transfer function", function () { return __awaiter(_this, void 0, void 0, function () {
         var _this = this;
         return __generator(this, function (_a) {
             before(function () { return __awaiter(_this, void 0, void 0, function () {
@@ -238,7 +238,7 @@ contract("PreICO", function (accounts) {
                     }
                 });
             }); });
-            it.only("Should correctly transfer funds to address", function () { return __awaiter(_this, void 0, void 0, function () {
+            it("Should correctly transfer funds to address", function () { return __awaiter(_this, void 0, void 0, function () {
                 var balance;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -262,6 +262,94 @@ contract("PreICO", function (accounts) {
                                 .to.equal(+balance + +amount);
                             return [2 /*return*/];
                     }
+                });
+            }); });
+            describe("Invoking transfer violations", function () { return __awaiter(_this, void 0, void 0, function () {
+                var _this = this;
+                return __generator(this, function (_a) {
+                    beforeEach(function () { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, PreICO.new(king, queen, jack, ace)];
+                                case 1:
+                                    pr = _a.sent();
+                                    chai_1.expect(function () { return SendWei(joker, pr.address, amount); }, // send 1 ether
+                                    "Balance was not increased")
+                                        .to.increase(function () { return GetBalance(pr.address); }) // check balance
+                                        .by(amount);
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    it("Sending different amount of ether", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var balance, _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0:
+                                    balance = GetBalance(magpie);
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
+                                case 1:
+                                    _c.sent();
+                                    _a = chai_1.expect;
+                                    return [4 /*yield*/, index_1.expectThrow(pr.transfer(magpie, amount * 2, { from: queen }))];
+                                case 2:
+                                    _a.apply(void 0, [_c.sent(),
+                                        "Expected throw because amount is different"])
+                                        .to.be.true;
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: jack })];
+                                case 3:
+                                    _c.sent();
+                                    _b = chai_1.expect;
+                                    return [4 /*yield*/, index_1.expectThrow(pr.transfer(magpie, amount * 2, { from: jack }))];
+                                case 4:
+                                    _b.apply(void 0, [_c.sent(),
+                                        "Expected throw because amount is different"])
+                                        .to.be.true;
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: queen })];
+                                case 5:
+                                    _c.sent();
+                                    chai_1.expect(GetBalance(magpie), "Transfer should've increase balance")
+                                        .to.equal(+balance + +amount);
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    it("Trying to spam", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var balance;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    balance = GetBalance(magpie);
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
+                                case 1:
+                                    _a.sent();
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
+                                case 2:
+                                    _a.sent();
+                                    /*expect(await expectThrow(pr.transfer(magpie, amount, {from: king})),
+                                        "Expected to throw because spamming")
+                                        .to.be.true;*/
+                                    // Previous transfer confirmation sequence - need to start from begining 
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
+                                case 3:
+                                    /*expect(await expectThrow(pr.transfer(magpie, amount, {from: king})),
+                                        "Expected to throw because spamming")
+                                        .to.be.true;*/
+                                    // Previous transfer confirmation sequence - need to start from begining 
+                                    _a.sent();
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: jack })];
+                                case 4:
+                                    _a.sent();
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: queen })];
+                                case 5:
+                                    _a.sent();
+                                    chai_1.expect(GetBalance(magpie), "Transfer should've increase balance")
+                                        .to.equal(+balance + +amount);
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    return [2 /*return*/];
                 });
             }); });
             return [2 /*return*/];

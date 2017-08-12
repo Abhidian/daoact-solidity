@@ -94,13 +94,13 @@ contract PreICO{
     
     // Compare amount of wei with previous confirmtaion
     if( pending.eth != amount){
-        transferViolated();
+        transferViolated("Incorrect amount of wei passed");
         return;
     }
     
     // make sure signer is not trying to spam
     if(msg.sender == pending.signer[0]){
-        transferViolated();
+        transferViolated("Signer is spamming");
         return;
     }
     
@@ -111,7 +111,7 @@ contract PreICO{
     // make sure signer is not trying to spam
     if( remaining == 0){
         if(msg.sender == pending.signer[1]){
-            transferViolated();
+            transferViolated("One of signers are spamming");
             return;
         }
     }
@@ -126,12 +126,11 @@ contract PreICO{
             Transfer(pending.signer[0],pending.signer[1], pending.signer[2], recipient,amount,false);
         }
         delete pending;
-    }
-    
+    } 
   }
   
-  function transferViolated() private {
-    Violated("Funds Transfer",msg.sender);
+  function transferViolated(string error) private {
+    Violated(error, msg.sender);
     delete pending;
   }
   
@@ -141,7 +140,6 @@ contract PreICO{
   function abortTransaction() external onlyAdmin{
        delete pending;
   }
-  
   
   /** 
    * @dev Fallback function, receives value and emits a deposit event. 
