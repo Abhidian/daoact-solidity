@@ -44,8 +44,8 @@ contract PreICO{
   event UpdateConfirmed(address indexed signer,address indexed newAddress,uint256 remainingConfirmations);
   
   
-  // Administrator voilated consensus
-  event Voilation(string action, address sender); 
+  // Administrator violated consensus
+  event Violated(string action, address sender); 
   
   // Administrator key updated (administrator replaced)
   event KeyReplaced(address oldKey,address newKey);
@@ -70,37 +70,37 @@ contract PreICO{
    * @dev  To trigger payout three out of four administrators call this
    * function, funds will be transferred right after verification of
    * third signer call.
-   * @param _to The address of recipient
-   * @param ethers Amount of ethers to be transferred
+   * @param recipient The address of recipient
+   * @param amount Amount of wei to be transferred
    */
-  function transfer(address _to, uint256 ethers) external onlyAdmin {
+  function transfer(address recipient, uint256 amount) external onlyAdmin {
     
     // input validations
-    require( _to != 0x00 );
-    require( ethers > 0 );
-    require( this.balance >= ethers);
+    require( recipient != 0x00 );
+    require( amount > 0 );
+    require( this.balance >= amount);
     
     // Start of signing process, first signer will finalize inputs for remaining two
     if(pending.confirmations == 0){
         
         pending.signer[pending.confirmations] = msg.sender;
-        pending.eth = ethers;
+        pending.eth = amount;
         pending.confirmations = pending.confirmations.add(1);
         uint256 remaining = required.sub(pending.confirmations);
-        TransferConfirmed(msg.sender,ethers,remaining);
+        TransferConfirmed(msg.sender,amount,remaining);
         return;
     
     }
     
-    // Compare amount of ethers with previous confirmtaion
-    if( pending.eth != ethers){
-        transferVoilated();
+    // Compare amount of wei with previous confirmtaion
+    if( pending.eth != amount){
+        transferViolated();
         return;
     }
     
     // make sure signer is not trying to spam
     if(msg.sender == pending.signer[0]){
-        transferVoilated();
+        transferViolated();
         return;
     }
     
@@ -111,27 +111,27 @@ contract PreICO{
     // make sure signer is not trying to spam
     if( remaining == 0){
         if(msg.sender == pending.signer[1]){
-            transferVoilated();
+            transferViolated();
             return;
         }
     }
     
-    TransferConfirmed(msg.sender,ethers,remaining);
+    TransferConfirmed(msg.sender,amount,remaining);
     
     // If three confirmation are done, trigger payout
     if (pending.confirmations == 3){
-        if(_to.send(ethers)){
-            Transfer(pending.signer[0],pending.signer[1], pending.signer[2], _to,ethers,true);
+        if(recipient.send(amount)){
+            Transfer(pending.signer[0],pending.signer[1], pending.signer[2], recipient,amount,true);
         }else{
-            Transfer(pending.signer[0],pending.signer[1], pending.signer[2], _to,ethers,false);
+            Transfer(pending.signer[0],pending.signer[1], pending.signer[2], recipient,amount,false);
         }
         delete pending;
     }
     
   }
   
-  function transferVoilated() private {
-    Voilation("Funds Transfer",msg.sender);
+  function transferViolated() private {
+    Violated("Funds Transfer",msg.sender);
     delete pending;
   }
   
@@ -202,29 +202,29 @@ contract PreICO{
         
     }
     
-    // voilated consensus
+    // violated consensus
     if(updating.oldAddress != _oldAddress){
-        Voilation("Administrator key Update",msg.sender);
+        Violated("Administrator key Update",msg.sender);
         delete updating;
         return;
     }
     
     if(updating.newAddress != _newAddress){
-        Voilation("Administrator key Update",msg.sender);
+        Violated("Administrator key Update",msg.sender);
         delete updating;
         return;
     }
     
     // make sure admin is not trying to spam
     if(msg.sender == updating.signer[0]){
-        Voilation("Funds Transfer",msg.sender);
+        Violated("Funds Transfer",msg.sender);
         delete updating;
         return;
     }
     
     if( remaining == 1){
         if(msg.sender != updating.signer[1]){
-            Voilation("Funds Transfer",msg.sender);
+            Violated("Funds Transfer",msg.sender);
             delete updating;
             return;
         }
