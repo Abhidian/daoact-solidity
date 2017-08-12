@@ -51,25 +51,25 @@ contract ForecasterReward is Haltable {
   event EndsAtChanged(uint endsAt);
 
   function ForecasterReward(
-      address _owner,
-      uint _start, 
-      uint _end, 
-      address _forecasters, 
-      address _preICOContract) 
+      address frOwner,
+      uint startTimestamp, 
+      uint endTimestamp, 
+      address forecastersAddr, 
+      address preICOContractAddr) 
   {
     
-    require(_owner != 0x00);
-    require(_forecasters != 0x00);
-    require(_preICOContract != 0);
-    require(_start >= block.number); // I think starting block should have offset for 1-2 blocks just in casse miners skip contract
-    require(_end  >= _start); // I think end block should have offset for like 10 blocks mininum
-     
-    owner = _owner;
-    forecasters = _forecasters;
-    preICOContract = _preICOContract;
+    require(frOwner != 0x00);
+    require(forecastersAddr != 0x00);
+    require(preICOContractAddr != 0);
+    require(startTimestamp >= now); 
+    require(endTimestamp  >= startTimestamp); 
+
+    owner = frOwner;
+    forecasters = forecastersAddr;
+    preICOContract = preICOContractAddr;
     
-    startsAt = _start;
-    endsAt = _end;
+    startsAt = startTimestamp;
+    endsAt = endTimestamp;
   }
 
   /**
@@ -214,9 +214,9 @@ contract ForecasterReward is Haltable {
    * We make it a function and do not assign the result to a variable, so there is no chance of the variable being stale.
    */
   function getState() public constant returns (State) {
-    if (block.number < startsAt) return State.PreFunding;
-    else if (block.number <= endsAt) return State.Funding;
-    else if (block.number > endsAt) return State.Closed;
+    if (now < startsAt) return State.PreFunding;
+    else if (now <= endsAt) return State.Funding;
+    else if (now > endsAt) return State.Closed;
   }
 
   /** Interface marker. */

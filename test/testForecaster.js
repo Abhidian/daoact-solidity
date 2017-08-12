@@ -42,11 +42,11 @@ var _a = require('@digix/tempo')(web3), wait = _a.wait, waitUntilBlock = _a.wait
 var chai_1 = require("chai");
 var index_1 = require("./helpers/index");
 var fr = null; // forecaster instance
-var startBlockOffset = 5;
-var endBlockOffset = 10;
+var startTimeOffset = 10 * 60;
+var endTimeOffset = 10 * 60;
 var owner;
-var startBlock;
-var endBlock;
+var startTime;
+var endTime;
 var forecaster;
 var preICO;
 var investor0;
@@ -56,6 +56,8 @@ var state = {
     'Funding': 1,
     'Closed': 2
 };
+function currentTimeInSec() { return Math.floor(new Date().getTime() / 1000); }
+function lastBlockTimeInSec() { return web3.eth.getBlock(web3.eth.blockNumber).timestamp; }
 contract("ForecasterReward", function (accounts) {
     describe("Initialization", function () { return __awaiter(_this, void 0, void 0, function () {
         var _this = this;
@@ -63,8 +65,8 @@ contract("ForecasterReward", function (accounts) {
             before(function () { return __awaiter(_this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     owner = accounts[0];
-                    startBlock = web3.eth.blockNumber + startBlockOffset;
-                    endBlock = startBlock + endBlockOffset;
+                    startTime = lastBlockTimeInSec() + startTimeOffset;
+                    endTime = startTime + endTimeOffset;
                     forecaster = accounts[1];
                     preICO = accounts[2];
                     investor0 = accounts[3];
@@ -76,7 +78,7 @@ contract("ForecasterReward", function (accounts) {
                 var _a, _b, _c, _d, _e;
                 return __generator(this, function (_f) {
                     switch (_f.label) {
-                        case 0: return [4 /*yield*/, ForecasterReward.new(owner, startBlock, endBlock, forecaster, preICO)];
+                        case 0: return [4 /*yield*/, ForecasterReward.new(owner, startTime, endTime, forecaster, preICO)];
                         case 1:
                             fr = _f.sent();
                             _a = chai_1.expect;
@@ -94,11 +96,11 @@ contract("ForecasterReward", function (accounts) {
                             _d = chai_1.expect;
                             return [4 /*yield*/, fr.fundingStartAt()];
                         case 5:
-                            _d.apply(void 0, [(_f.sent()).toNumber(), "Start Block incorrect/not set"]).to.equal(startBlock);
+                            _d.apply(void 0, [(_f.sent()).toNumber(), "Start Time incorrect/not set"]).to.equal(startTime);
                             _e = chai_1.expect;
                             return [4 /*yield*/, fr.fundingEndsAt()];
                         case 6:
-                            _e.apply(void 0, [(_f.sent()).toNumber(), "End BLock incorrect/not set"]).to.equal(endBlock);
+                            _e.apply(void 0, [(_f.sent()).toNumber(), "End Time incorrect/not set"]).to.equal(endTime);
                             return [2 /*return*/];
                     }
                 });
@@ -119,31 +121,31 @@ contract("ForecasterReward", function (accounts) {
                         case 1:
                             _a.apply(void 0, [_g.sent()]).to.be.true;
                             _b = chai_1.expect;
-                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(0, startBlock, endBlock, forecaster, preICO))];
+                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(0, startTime, endTime, forecaster, preICO))];
                         case 2:
                             _b.apply(void 0, [_g.sent(),
                                 "Passing owner as 0 should throw"])
                                 .to.be.true;
                             _c = chai_1.expect;
-                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, 0, endBlock, forecaster, preICO))];
+                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, 0, endTime, forecaster, preICO))];
                         case 3:
                             _c.apply(void 0, [_g.sent(),
                                 "Passing start block as 0 should throw"])
                                 .to.be.true;
                             _d = chai_1.expect;
-                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, startBlock, 0, forecaster, preICO))];
+                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, startTime, 0, forecaster, preICO))];
                         case 4:
                             _d.apply(void 0, [_g.sent(),
                                 "Passing end block as 0 should throw"])
                                 .to.be.true;
                             _e = chai_1.expect;
-                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, startBlock, endBlock, 0, preICO))];
+                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, startTime, endTime, 0, preICO))];
                         case 5:
                             _e.apply(void 0, [_g.sent(),
                                 "Passing forecaster as 0 should throw"])
                                 .to.be.true;
                             _f = chai_1.expect;
-                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, startBlock, endBlock, forecaster, 0))];
+                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, startTime, endTime, forecaster, 0))];
                         case 6:
                             _f.apply(void 0, [_g.sent(),
                                 "Passing preIco as 0 should throw"])
@@ -159,13 +161,13 @@ contract("ForecasterReward", function (accounts) {
                         case 0:
                             blockNumber = web3.eth.blockNumber;
                             _a = chai_1.expect;
-                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, blockNumber - 1, endBlock, forecaster, preICO))];
+                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, blockNumber - 1, endTime, forecaster, preICO))];
                         case 1:
                             _a.apply(void 0, [_c.sent(),
                                 "Passing already passed block number"])
                                 .to.be.true;
                             _b = chai_1.expect;
-                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, blockNumber - 1, endBlock, forecaster, preICO))];
+                            return [4 /*yield*/, index_1.expectThrow(ForecasterReward.new(owner, blockNumber - 1, endTime, forecaster, preICO))];
                         case 2:
                             _b.apply(void 0, [_c.sent(),
                                 "End block should be ahead of start block"])
@@ -185,13 +187,13 @@ contract("ForecasterReward", function (accounts) {
                     switch (_a.label) {
                         case 0:
                             owner = accounts[0];
-                            startBlock = web3.eth.blockNumber + startBlockOffset;
-                            endBlock = startBlock + endBlockOffset;
+                            startTime = lastBlockTimeInSec() + startTimeOffset;
+                            endTime = startTime + endTimeOffset;
                             forecaster = accounts[1];
                             preICO = accounts[2];
                             investor0 = accounts[3];
                             investor1 = accounts[4];
-                            return [4 /*yield*/, ForecasterReward.new(owner, startBlock, endBlock, forecaster, preICO)];
+                            return [4 /*yield*/, ForecasterReward.new(owner, startTime, endTime, forecaster, preICO)];
                         case 1:
                             fr = _a.sent();
                             return [2 /*return*/];
@@ -220,7 +222,7 @@ contract("ForecasterReward", function (accounts) {
                             return [4 /*yield*/, fr.getState()];
                         case 1:
                             _a.apply(void 0, [(_c.sent()).toNumber()]).to.deep.equal(state["PreFunding"]);
-                            return [4 /*yield*/, waitUntilBlock(0, startBlock + 1)];
+                            return [4 /*yield*/, wait(startTime - lastBlockTimeInSec() + 10)];
                         case 2:
                             _c.sent();
                             _b = chai_1.expect;
@@ -240,7 +242,7 @@ contract("ForecasterReward", function (accounts) {
                             return [4 /*yield*/, fr.getState()];
                         case 1:
                             _a.apply(void 0, [(_c.sent()).toNumber()]).to.deep.equal(state["Funding"]);
-                            return [4 /*yield*/, waitUntilBlock(0, endBlock + 1)];
+                            return [4 /*yield*/, wait(endTime - lastBlockTimeInSec() + 10)];
                         case 2:
                             _c.sent();
                             _b = chai_1.expect;
@@ -262,13 +264,13 @@ contract("ForecasterReward", function (accounts) {
                     switch (_a.label) {
                         case 0:
                             owner = accounts[0];
-                            startBlock = web3.eth.blockNumber + startBlockOffset;
-                            endBlock = startBlock + endBlockOffset;
+                            startTime = lastBlockTimeInSec() + startTimeOffset;
+                            endTime = startTime + endTimeOffset;
                             forecaster = accounts[1];
                             preICO = accounts[2];
                             investor0 = accounts[3];
                             investor1 = accounts[4];
-                            return [4 /*yield*/, ForecasterReward.new(owner, startBlock, endBlock, forecaster, preICO)];
+                            return [4 /*yield*/, ForecasterReward.new(owner, startTime, endTime, forecaster, preICO)];
                         case 1:
                             fr = _a.sent();
                             return [2 /*return*/];
@@ -276,7 +278,7 @@ contract("ForecasterReward", function (accounts) {
                 });
             }); });
             it("Funding", function () { return __awaiter(_this, void 0, void 0, function () {
-                var forecasterBalance, preICOBalance, investment, _a, _b, _c, _d, _e, _f, expectedForForecaster, expectedForPreICO, _g, _h;
+                var forecasterBalance, preICOBalance, investment, _a, _b, _c, _d, _e, _f, forecastersPart, expectedForForecaster, expectedForPreICO, _g, _h;
                 return __generator(this, function (_j) {
                     switch (_j.label) {
                         case 0:
@@ -286,20 +288,24 @@ contract("ForecasterReward", function (accounts) {
                             _a = chai_1.expect;
                             return [4 /*yield*/, fr.getState()];
                         case 1:
-                            _a.apply(void 0, [(_j.sent()).toNumber()]).to.deep.equal(state["PreFunding"]);
+                            _a.apply(void 0, [(_j.sent()).toNumber(),
+                                "State should be Prefunding"])
+                                .to.deep.equal(state["PreFunding"]);
                             _b = chai_1.expect;
                             return [4 /*yield*/, index_1.expectThrow(fr.buy(investor0, { value: investment, from: investor0 }))];
                         case 2:
                             _b.apply(void 0, [_j.sent(),
                                 "Buying in PreFunding should be now allowed"])
                                 .to.be.true;
-                            return [4 /*yield*/, waitUntilBlock(0, startBlock + 1)];
+                            return [4 /*yield*/, wait(startTime - lastBlockTimeInSec() + 10)];
                         case 3:
                             _j.sent();
                             _c = chai_1.expect;
                             return [4 /*yield*/, fr.getState()];
                         case 4:
-                            _c.apply(void 0, [(_j.sent()).toNumber()]).to.deep.equal(state["Funding"]);
+                            _c.apply(void 0, [(_j.sent()).toNumber(),
+                                "State should be Funding"])
+                                .to.deep.equal(state["Funding"]);
                             return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
                         case 5:
                             _j.sent();
@@ -321,24 +327,21 @@ contract("ForecasterReward", function (accounts) {
                             return [4 /*yield*/, fr.fundingRaised()];
                         case 10:
                             _f.apply(void 0, [(_j.sent()).toNumber(), "Should be 3 ethers"]).to.equal(3 * investment);
-                            expectedForForecaster = forecasterBalance + (investment * 3) / 20;
-                            expectedForPreICO = preICOBalance + investment * 3 - expectedForForecaster;
-                            console.log("EFore: " + expectedForForecaster);
-                            console.log("PreICO: " + expectedForPreICO);
+                            forecastersPart = ((investment * 3) / 20);
+                            expectedForForecaster = forecasterBalance.toNumber() + forecastersPart;
+                            expectedForPreICO = preICOBalance.toNumber() + (investment * 3 - forecastersPart);
                             _g = chai_1.expect;
-                            return [4 /*yield*/, web3.eth.getBalance(forecaster).valueOf()];
+                            return [4 /*yield*/, web3.eth.getBalance(forecaster).toNumber()];
                         case 11:
                             _g.apply(void 0, [_j.sent(),
                                 "Forecasters balance is incorrect"])
-                                .to.deep.equal(expectedForForecaster);
+                                .to.equal(expectedForForecaster);
                             _h = chai_1.expect;
-                            return [4 /*yield*/, web3.eth.getBalance(preICO).valueOf()];
+                            return [4 /*yield*/, web3.eth.getBalance(preICO).toNumber()];
                         case 12:
                             _h.apply(void 0, [_j.sent(),
                                 "PreICO balance is incorrect"])
-                                .to.deep.equal(expectedForPreICO);
-                            console.log("Fore: " + web3.fromWei(web3.eth.getBalance(forecaster)));
-                            console.log("PreICO: " + web3.fromWei(web3.eth.getBalance(preICO)));
+                                .to.equal(expectedForPreICO);
                             return [2 /*return*/];
                     }
                 });
