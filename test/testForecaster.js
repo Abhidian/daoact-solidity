@@ -179,7 +179,7 @@ contract("ForecasterReward", function (accounts) {
             return [2 /*return*/];
         });
     }); });
-    describe("Testing states", function () { return __awaiter(_this, void 0, void 0, function () {
+    describe("Should not be allowed buying in halted mode", function () { return __awaiter(_this, void 0, void 0, function () {
         var _this = this;
         return __generator(this, function (_a) {
             before(function () { return __awaiter(_this, void 0, void 0, function () {
@@ -259,7 +259,7 @@ contract("ForecasterReward", function (accounts) {
     describe("Investment flow", function () { return __awaiter(_this, void 0, void 0, function () {
         var _this = this;
         return __generator(this, function (_a) {
-            before(function () { return __awaiter(_this, void 0, void 0, function () {
+            beforeEach(function () { return __awaiter(_this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -277,10 +277,71 @@ contract("ForecasterReward", function (accounts) {
                     }
                 });
             }); });
-            it("Funding", function () { return __awaiter(_this, void 0, void 0, function () {
-                var forecasterBalance, preICOBalance, investment, _a, _b, _c, _d, _e, _f, forecastersPart, expectedForForecaster, expectedForPreICO, _g, _h;
-                return __generator(this, function (_j) {
-                    switch (_j.label) {
+            it("Try Sending in halt mode", function () { return __awaiter(_this, void 0, void 0, function () {
+                var investment, _a, _b, _c, _d, _e, _f, _g;
+                return __generator(this, function (_h) {
+                    switch (_h.label) {
+                        case 0:
+                            investment = web3.toWei(1, "ether");
+                            _a = chai_1.expect;
+                            return [4 /*yield*/, fr.getState()];
+                        case 1:
+                            _a.apply(void 0, [(_h.sent()).toNumber(),
+                                "State should be Prefunding"])
+                                .to.deep.equal(state["PreFunding"]);
+                            return [4 /*yield*/, wait(startTime - lastBlockTimeInSec() + 10)];
+                        case 2:
+                            _h.sent();
+                            _b = chai_1.expect;
+                            return [4 /*yield*/, fr.getState()];
+                        case 3:
+                            _b.apply(void 0, [(_h.sent()).toNumber(),
+                                "State should be Funding"])
+                                .to.deep.equal(state["Funding"]);
+                            return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
+                        case 4:
+                            _h.sent();
+                            return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
+                        case 5:
+                            _h.sent();
+                            return [4 /*yield*/, fr.buy(investor1, { value: investment, from: investor1 })];
+                        case 6:
+                            _h.sent();
+                            _c = chai_1.expect;
+                            return [4 /*yield*/, fr.distinctInvestors()];
+                        case 7:
+                            _c.apply(void 0, [(_h.sent()).toNumber(), "Should be 2 investors"]).to.equal(2);
+                            _d = chai_1.expect;
+                            return [4 /*yield*/, fr.investments()];
+                        case 8:
+                            _d.apply(void 0, [(_h.sent()).toNumber(), "Should be 3 investments"]).to.equal(3);
+                            _e = chai_1.expect;
+                            return [4 /*yield*/, fr.fundingRaised()];
+                        case 9:
+                            _e.apply(void 0, [(_h.sent()).toNumber(), "Should be 3 ethers"]).to.equal(3 * investment);
+                            return [4 /*yield*/, fr.halt({ from: owner })];
+                        case 10:
+                            _h.sent();
+                            _f = chai_1.expect;
+                            return [4 /*yield*/, index_1.expectThrow(fr.buy(investor0, { value: investment, from: investor0 }))];
+                        case 11:
+                            _f.apply(void 0, [_h.sent(),
+                                "Buying in halted mode should not work"])
+                                .to.be.true;
+                            _g = chai_1.expect;
+                            return [4 /*yield*/, index_1.expectThrow(fr.buy(investor0, { value: investment, from: investor1 }))];
+                        case 12:
+                            _g.apply(void 0, [_h.sent(),
+                                "Buying in halted mode should not work"])
+                                .to.be.true;
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Traversing through all states and buying in between", function () { return __awaiter(_this, void 0, void 0, function () {
+                var forecasterBalance, preICOBalance, investment, _a, _b, _c, _d, _e, _f, forecastersPart, expectedForForecaster, expectedForPreICO, _g, _h, _j;
+                return __generator(this, function (_k) {
+                    switch (_k.label) {
                         case 0:
                             forecasterBalance = web3.eth.getBalance(forecaster);
                             preICOBalance = web3.eth.getBalance(preICO);
@@ -288,60 +349,69 @@ contract("ForecasterReward", function (accounts) {
                             _a = chai_1.expect;
                             return [4 /*yield*/, fr.getState()];
                         case 1:
-                            _a.apply(void 0, [(_j.sent()).toNumber(),
+                            _a.apply(void 0, [(_k.sent()).toNumber(),
                                 "State should be Prefunding"])
                                 .to.deep.equal(state["PreFunding"]);
                             _b = chai_1.expect;
                             return [4 /*yield*/, index_1.expectThrow(fr.buy(investor0, { value: investment, from: investor0 }))];
                         case 2:
-                            _b.apply(void 0, [_j.sent(),
+                            _b.apply(void 0, [_k.sent(),
                                 "Buying in PreFunding should be now allowed"])
                                 .to.be.true;
                             return [4 /*yield*/, wait(startTime - lastBlockTimeInSec() + 10)];
                         case 3:
-                            _j.sent();
+                            _k.sent();
                             _c = chai_1.expect;
                             return [4 /*yield*/, fr.getState()];
                         case 4:
-                            _c.apply(void 0, [(_j.sent()).toNumber(),
+                            _c.apply(void 0, [(_k.sent()).toNumber(),
                                 "State should be Funding"])
                                 .to.deep.equal(state["Funding"]);
                             return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
                         case 5:
-                            _j.sent();
+                            _k.sent();
                             return [4 /*yield*/, fr.buy(investor0, { value: investment, from: investor0 })];
                         case 6:
-                            _j.sent();
+                            _k.sent();
                             return [4 /*yield*/, fr.buy(investor1, { value: investment, from: investor1 })];
                         case 7:
-                            _j.sent();
+                            _k.sent();
                             _d = chai_1.expect;
                             return [4 /*yield*/, fr.distinctInvestors()];
                         case 8:
-                            _d.apply(void 0, [(_j.sent()).toNumber(), "Should be 2 investors"]).to.equal(2);
+                            _d.apply(void 0, [(_k.sent()).toNumber(), "Should be 2 investors"]).to.equal(2);
                             _e = chai_1.expect;
                             return [4 /*yield*/, fr.investments()];
                         case 9:
-                            _e.apply(void 0, [(_j.sent()).toNumber(), "Should be 3 investments"]).to.equal(3);
+                            _e.apply(void 0, [(_k.sent()).toNumber(), "Should be 3 investments"]).to.equal(3);
                             _f = chai_1.expect;
                             return [4 /*yield*/, fr.fundingRaised()];
                         case 10:
-                            _f.apply(void 0, [(_j.sent()).toNumber(), "Should be 3 ethers"]).to.equal(3 * investment);
+                            _f.apply(void 0, [(_k.sent()).toNumber(), "Should be 3 ethers"]).to.equal(3 * investment);
                             forecastersPart = ((investment * 3) / 20);
                             expectedForForecaster = forecasterBalance.toNumber() + forecastersPart;
                             expectedForPreICO = preICOBalance.toNumber() + (investment * 3 - forecastersPart);
                             _g = chai_1.expect;
                             return [4 /*yield*/, web3.eth.getBalance(forecaster).toNumber()];
                         case 11:
-                            _g.apply(void 0, [_j.sent(),
+                            _g.apply(void 0, [_k.sent(),
                                 "Forecasters balance is incorrect"])
                                 .to.equal(expectedForForecaster);
                             _h = chai_1.expect;
                             return [4 /*yield*/, web3.eth.getBalance(preICO).toNumber()];
                         case 12:
-                            _h.apply(void 0, [_j.sent(),
+                            _h.apply(void 0, [_k.sent(),
                                 "PreICO balance is incorrect"])
                                 .to.equal(expectedForPreICO);
+                            return [4 /*yield*/, wait(endTime - lastBlockTimeInSec() + 10)];
+                        case 13:
+                            _k.sent();
+                            _j = chai_1.expect;
+                            return [4 /*yield*/, fr.getState()];
+                        case 14:
+                            _j.apply(void 0, [(_k.sent()).toNumber(),
+                                "State should be Closed"])
+                                .to.deep.equal(state["Closed"]);
                             return [2 /*return*/];
                     }
                 });

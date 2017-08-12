@@ -105,13 +105,12 @@ contract("ForecasterReward", (accounts) =>
 
             expect(await expectThrow(
                 ForecasterReward.new(owner,blockNumber - 1,endTime,forecaster,preICO)),
-                "End block should be ahead of start block"
-                )
+                "End block should be ahead of start block")
                     .to.be.true;
         })
     });
 
-    describe("Testing states", async()=>
+    describe("Should not be allowed buying in halted mode", async()=>
     {
         before(async()=>
         {
@@ -154,7 +153,7 @@ contract("ForecasterReward", (accounts) =>
 
     describe("Investment flow", async()=>
     {
-        before(async()=>
+        beforeEach(async()=>
         {
             owner = accounts[0];
             startTime = lastBlockTimeInSec() + startTimeOffset;
@@ -172,7 +171,40 @@ contract("ForecasterReward", (accounts) =>
                 preICO);
         });
 
-        it("Funding", async()=>
+        it("Try Sending in halt mode", async()=>
+        {
+            let investment = web3.toWei(1, "ether");
+
+            expect((await fr.getState()).toNumber(),
+                "State should be Prefunding")
+                .to.deep.equal(state["PreFunding"]);
+
+            await wait(startTime - lastBlockTimeInSec() + 10);
+
+            expect((await fr.getState()).toNumber(),
+                "State should be Funding")
+                .to.deep.equal(state["Funding"]);
+            
+            await fr.buy(investor0, {value:investment, from:investor0});
+            await fr.buy(investor0, {value:investment, from:investor0});
+            await fr.buy(investor1, {value:investment, from:investor1});
+
+            expect((await fr.distinctInvestors()).toNumber(), "Should be 2 investors").to.equal(2);
+            expect((await fr.investments()).toNumber(), "Should be 3 investments").to.equal(3);
+            expect((await fr.fundingRaised()).toNumber(), "Should be 3 ethers").to.equal(3*investment);
+            
+            await fr.halt({from:owner});
+
+            expect(await expectThrow(fr.buy(investor0, {value:investment, from:investor0})),
+                "Buying in halted mode should not work")
+                .to.be.true;
+
+            expect(await expectThrow(fr.buy(investor0, {value:investment, from:investor1})),
+                "Buying in halted mode should not work")
+                .to.be.true;
+        })
+
+        it("Traversing through all states and buying in between", async()=>
         {
             let forecasterBalance = web3.eth.getBalance(forecaster);
             let preICOBalance = web3.eth.getBalance(preICO);
@@ -185,7 +217,7 @@ contract("ForecasterReward", (accounts) =>
 
             expect(await expectThrow(fr.buy(investor0, {value:investment, from:investor0})),
                 "Buying in PreFunding should be now allowed")
-                    .to.be.true;
+                .to.be.true;
             
             await wait(startTime - lastBlockTimeInSec() + 10);
             
@@ -201,7 +233,7 @@ contract("ForecasterReward", (accounts) =>
             expect((await fr.investments()).toNumber(), "Should be 3 investments").to.equal(3);
             expect((await fr.fundingRaised()).toNumber(), "Should be 3 ethers").to.equal(3*investment);
             
-            let forecastersPart = ((investment*3) / 20); // 5% rest goes to PreICO
+            let forecastersPart = ((investment*3) / 20); // 5% for forecaster - rest goes to PreICO
             let expectedForForecaster = forecasterBalance.toNumber() + forecastersPart;
             let expectedForPreICO = preICOBalance.toNumber() + (investment*3 - forecastersPart);
             
@@ -212,6 +244,11 @@ contract("ForecasterReward", (accounts) =>
             expect(await web3.eth.getBalance(preICO).toNumber(),
                 "PreICO balance is incorrect")
                 .to.equal(expectedForPreICO);
+
+            await wait(endTime - lastBlockTimeInSec() + 10);
+            expect((await fr.getState()).toNumber(),
+                "State should be Closed")
+                .to.deep.equal(state["Closed"]);
         });
     })
 });
