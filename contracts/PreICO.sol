@@ -49,9 +49,18 @@ contract PreICO{
   
   // Administrator key updated (administrator replaced)
   event KeyReplaced(address oldKey,address newKey);
+
+  event EventTransferWasReset();
+  event EventUpdateWasReset();
   
   
   function PreICO(address admin1,address admin2,address admin3,address admin4){
+
+      require(admin1 != 0);
+      require(admin2 != 0);
+      require(admin3 != 0);
+      require(admin4 != 0);
+
     administrators[admin1] = true;
     
     // all admins must have unique public keys
@@ -79,6 +88,8 @@ contract PreICO{
     require( recipient != 0x00 );
     require( amount > 0 );
     require( this.balance >= amount);
+
+    uint remaining;
     
     // Start of signing process, first signer will finalize inputs for remaining two
     if(pending.confirmations == 0){
@@ -86,14 +97,14 @@ contract PreICO{
         pending.signer[pending.confirmations] = msg.sender;
         pending.eth = amount;
         pending.confirmations = pending.confirmations.add(1);
-        uint256 remaining = required.sub(pending.confirmations);
+        remaining = required.sub(pending.confirmations);
         TransferConfirmed(msg.sender,amount,remaining);
         return;
     
     }
     
     // Compare amount of wei with previous confirmtaion
-    if( pending.eth != amount){
+    if(pending.eth != amount){
         transferViolated("Incorrect amount of wei passed");
         return;
     }
@@ -111,7 +122,7 @@ contract PreICO{
     // make sure signer is not trying to spam
     if( remaining == 0){
         if(msg.sender == pending.signer[1]){
-            transferViolated("One of signers are spamming");
+            transferViolated("One of signers is spamming");
             return;
         }
     }
@@ -125,20 +136,27 @@ contract PreICO{
         }else{
             Transfer(pending.signer[0],pending.signer[1], pending.signer[2], recipient,amount,false);
         }
-        delete pending;
+        ResetTransferState();
     } 
   }
   
   function transferViolated(string error) private {
     Violated(error, msg.sender);
-    delete pending;
+    ResetTransferState();
   }
   
+  function ResetTransferState() internal
+  {
+      delete pending;
+      EventTransferWasReset();
+  }
+
+
   /**
    * @dev Reset values of pending (Transaction object)
    */
   function abortTransaction() external onlyAdmin{
-       delete pending;
+       ResetTransferState();
   }
   
   /** 
@@ -149,7 +167,7 @@ contract PreICO{
     if (msg.value > 0)
       Deposit(msg.sender, msg.value);
   }
-  
+
   /**
    * @dev Checks if given address is an administrator.
    * @param _addr address The address which you want to check.
@@ -158,7 +176,6 @@ contract PreICO{
   function isAdministrator(address _addr) public constant returns (bool) {
     return administrators[_addr];
   }
-
   
   // Maintian state of administrator key update process
   struct KeyUpdate{
@@ -202,51 +219,59 @@ contract PreICO{
     
     // violated consensus
     if(updating.oldAddress != _oldAddress){
-        Violated("Administrator key Update",msg.sender);
-        delete updating;
+        Violated("Old addresses do not match",msg.sender);
+        ResetUpdateState();
         return;
     }
     
     if(updating.newAddress != _newAddress){
-        Violated("Administrator key Update",msg.sender);
-        delete updating;
+        Violated("New addresses do not match",msg.sender);
+        ResetUpdateState();
         return;
     }
     
     // make sure admin is not trying to spam
     if(msg.sender == updating.signer[0]){
-        Violated("Funds Transfer",msg.sender);
-        delete updating;
+        Violated("Signer is spamming",msg.sender);
+        ResetUpdateState();
         return;
     }
-    
-    if( remaining == 1){
-        if(msg.sender != updating.signer[1]){
-            Violated("Funds Transfer",msg.sender);
-            delete updating;
+        
+    updating.signer[updating.confirmations] = msg.sender;
+    updating.confirmations = updating.confirmations.add(1);
+    remaining = required.sub(updating.confirmations);
+
+    if( remaining == 0){
+        if(msg.sender == updating.signer[1]){
+            Violated("One of signers is spamming",msg.sender);
+            ResetUpdateState();
             return;
         }
     }
-    
-    updating.signer[updating.confirmations] = msg.sender;
-    updating.confirmations = updating.confirmations.add(1);
+
     UpdateConfirmed(msg.sender,_newAddress,remaining);
     
     // if three confirmation are done, register new admin and remove old one
     if( updating.confirmations == 3 ){
         KeyReplaced(_oldAddress, _newAddress);
-        delete updating;
+        ResetUpdateState();
         delete administrators[_oldAddress];
         administrators[_newAddress] = true;
         return;
     }
+  }
+  
+  function ResetUpdateState() internal
+  {
+      delete updating;
+      EventUpdateWasReset();
   }
 
   /**
    * @dev Reset values of updating (KeyUpdate object)
    */
   function abortUpdate() external onlyAdmin{
-      delete updating;
+      ResetUpdateState();
   }
   
   /**

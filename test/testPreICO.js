@@ -49,6 +49,11 @@ var ace;
 var joker;
 var amount;
 var magpie;
+function ReturnEventAndArgs(returnVal) {
+    return { eventName: returnVal.logs[0].event,
+        eventArgs: returnVal.logs[0].args.action,
+        raw: returnVal };
+}
 function GetBalance(addr) { return web3.eth.getBalance(addr).toNumber(); }
 function SendWei(from, to, amount) { web3.eth.sendTransaction({ from: from, to: to, value: amount }); }
 contract("PreICO", function (accounts) {
@@ -197,7 +202,7 @@ contract("PreICO", function (accounts) {
             return [2 /*return*/];
         });
     }); });
-    describe.only("Penetrating transfer function", function () { return __awaiter(_this, void 0, void 0, function () {
+    describe("Penetrating transfer function", function () { return __awaiter(_this, void 0, void 0, function () {
         var _this = this;
         return __generator(this, function (_a) {
             before(function () { return __awaiter(_this, void 0, void 0, function () {
@@ -239,9 +244,9 @@ contract("PreICO", function (accounts) {
                 });
             }); });
             it("Should correctly transfer funds to address", function () { return __awaiter(_this, void 0, void 0, function () {
-                var balance;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                var balance, r, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
                         case 0:
                             // Add funds to contract address
                             chai_1.expect(function () { return SendWei(joker, pr.address, amount); }, // send 1 ether
@@ -249,15 +254,21 @@ contract("PreICO", function (accounts) {
                                 .to.increase(function () { return GetBalance(pr.address); }) // check balance
                                 .by(amount);
                             balance = GetBalance(magpie);
+                            _a = ReturnEventAndArgs;
                             return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
                         case 1:
-                            _a.sent();
+                            r = _a.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.eventName, "Event Violation was not fired")
+                                .to.be.equal("TransferConfirmed");
                             return [4 /*yield*/, pr.transfer(magpie, amount, { from: queen })];
                         case 2:
-                            _a.sent();
+                            _c.sent();
+                            _b = ReturnEventAndArgs;
                             return [4 /*yield*/, pr.transfer(magpie, amount, { from: jack })];
                         case 3:
-                            _a.sent();
+                            r = _b.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.raw.logs[1].args.success, "Trasnfer was not successful")
+                                .to.be.true;
                             chai_1.expect(GetBalance(magpie), "Transfer should've increase balance")
                                 .to.equal(+balance + +amount);
                             return [2 /*return*/];
@@ -282,32 +293,29 @@ contract("PreICO", function (accounts) {
                         });
                     }); });
                     it("Sending different amount of ether", function () { return __awaiter(_this, void 0, void 0, function () {
-                        var balance, _a, _b;
-                        return __generator(this, function (_c) {
-                            switch (_c.label) {
+                        var balance, r, _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
                                 case 0:
                                     balance = GetBalance(magpie);
                                     return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
                                 case 1:
-                                    _c.sent();
-                                    _a = chai_1.expect;
-                                    return [4 /*yield*/, index_1.expectThrow(pr.transfer(magpie, amount * 2, { from: queen }))];
+                                    _b.sent();
+                                    _a = ReturnEventAndArgs;
+                                    return [4 /*yield*/, pr.transfer(magpie, amount / 2, { from: king })];
                                 case 2:
-                                    _a.apply(void 0, [_c.sent(),
-                                        "Expected throw because amount is different"])
-                                        .to.be.true;
-                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: jack })];
+                                    r = _a.apply(void 0, [_b.sent()]);
+                                    chai_1.expect(r.eventArgs, "Event Violation was not fired")
+                                        .to.be.equal("Incorrect amount of wei passed");
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
                                 case 3:
-                                    _c.sent();
-                                    _b = chai_1.expect;
-                                    return [4 /*yield*/, index_1.expectThrow(pr.transfer(magpie, amount * 2, { from: jack }))];
+                                    _b.sent();
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: jack })];
                                 case 4:
-                                    _b.apply(void 0, [_c.sent(),
-                                        "Expected throw because amount is different"])
-                                        .to.be.true;
+                                    _b.sent();
                                     return [4 /*yield*/, pr.transfer(magpie, amount, { from: queen })];
                                 case 5:
-                                    _c.sent();
+                                    _b.sent();
                                     chai_1.expect(GetBalance(magpie), "Transfer should've increase balance")
                                         .to.equal(+balance + +amount);
                                     return [2 /*return*/];
@@ -315,41 +323,229 @@ contract("PreICO", function (accounts) {
                         });
                     }); });
                     it("Trying to spam", function () { return __awaiter(_this, void 0, void 0, function () {
-                        var balance;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
+                        var balance, r, _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
                                 case 0:
                                     balance = GetBalance(magpie);
                                     return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
                                 case 1:
-                                    _a.sent();
+                                    _b.sent();
+                                    _a = ReturnEventAndArgs;
                                     return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
                                 case 2:
-                                    _a.sent();
-                                    /*expect(await expectThrow(pr.transfer(magpie, amount, {from: king})),
-                                        "Expected to throw because spamming")
-                                        .to.be.true;*/
-                                    // Previous transfer confirmation sequence - need to start from begining 
+                                    r = _a.apply(void 0, [_b.sent()]);
+                                    chai_1.expect(r.eventArgs, "Event Violation was notfired")
+                                        .to.be.equal("Signer is spamming");
+                                    // Previous transfer confirmation sequence got dropped - need to start from begining 
                                     return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
                                 case 3:
-                                    /*expect(await expectThrow(pr.transfer(magpie, amount, {from: king})),
-                                        "Expected to throw because spamming")
-                                        .to.be.true;*/
-                                    // Previous transfer confirmation sequence - need to start from begining 
-                                    _a.sent();
+                                    // Previous transfer confirmation sequence got dropped - need to start from begining 
+                                    _b.sent();
                                     return [4 /*yield*/, pr.transfer(magpie, amount, { from: jack })];
                                 case 4:
-                                    _a.sent();
+                                    _b.sent();
                                     return [4 /*yield*/, pr.transfer(magpie, amount, { from: queen })];
                                 case 5:
-                                    _a.sent();
+                                    _b.sent();
                                     chai_1.expect(GetBalance(magpie), "Transfer should've increase balance")
                                         .to.equal(+balance + +amount);
                                     return [2 /*return*/];
                             }
                         });
                     }); });
+                    it("Trying to spam (level2)", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var balance, r, _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    balance = GetBalance(magpie);
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: king })];
+                                case 1:
+                                    _b.sent();
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: queen })];
+                                case 2:
+                                    _b.sent();
+                                    _a = ReturnEventAndArgs;
+                                    return [4 /*yield*/, pr.transfer(magpie, amount, { from: queen })];
+                                case 3:
+                                    r = _a.apply(void 0, [_b.sent()]);
+                                    chai_1.expect(r.eventArgs, "Event Violation was notfired")
+                                        .to.be.equal("One of signers is spamming");
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
                     return [2 /*return*/];
+                });
+            }); });
+            return [2 /*return*/];
+        });
+    }); });
+    describe("Testing updateAdministratorKey", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _this = this;
+        return __generator(this, function (_a) {
+            beforeEach(function () { return __awaiter(_this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, PreICO.new(king, queen, jack, ace)];
+                        case 1:
+                            pr = _a.sent();
+                            amount = web3.toWei(1, "ether");
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Passing Incorrect params", function () { return __awaiter(_this, void 0, void 0, function () {
+                var _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _a = chai_1.expect;
+                            return [4 /*yield*/, index_1.expectThrow(pr.updateAdministratorKey(king, king, { from: king }))];
+                        case 1:
+                            _a.apply(void 0, [_c.sent(),
+                                "Giving admin to admin"])
+                                .to.be.true;
+                            _b = chai_1.expect;
+                            return [4 /*yield*/, index_1.expectThrow(pr.updateAdministratorKey(king, 0, { from: king }))];
+                        case 2:
+                            _b.apply(void 0, [_c.sent(),
+                                "Giving admin to 0"])
+                                .to.be.true;
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Should correctly change admins", function () { return __awaiter(_this, void 0, void 0, function () {
+                var r, _a, _b, _c;
+                return __generator(this, function (_d) {
+                    switch (_d.label) {
+                        case 0:
+                            _a = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: king })];
+                        case 1:
+                            r = _a.apply(void 0, [_d.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("UpdateConfirmed");
+                            _b = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: queen })];
+                        case 2:
+                            r = _b.apply(void 0, [_d.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("UpdateConfirmed");
+                            _c = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: jack })];
+                        case 3:
+                            r = _c.apply(void 0, [_d.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("UpdateConfirmed");
+                            chai_1.expect(r.raw.logs[1].event, "Event KeyReplaced was not fired")
+                                .to.be.equal("KeyReplaced");
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Violating admin change (oldAddress)", function () { return __awaiter(_this, void 0, void 0, function () {
+                var r, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _a = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: king })];
+                        case 1:
+                            r = _a.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("UpdateConfirmed");
+                            _b = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(jack, joker, { from: queen })];
+                        case 2:
+                            r = _b.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.eventArgs, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("Old addresses do not match");
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Violating admin change (newAddress)", function () { return __awaiter(_this, void 0, void 0, function () {
+                var r, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _a = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: king })];
+                        case 1:
+                            r = _a.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("UpdateConfirmed");
+                            _b = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, magpie, { from: queen })];
+                        case 2:
+                            r = _b.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.eventArgs, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("New addresses do not match");
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Violating admin change (Spamming #0)", function () { return __awaiter(_this, void 0, void 0, function () {
+                var r, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _a = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: king })];
+                        case 1:
+                            r = _a.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("UpdateConfirmed");
+                            _b = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: king })];
+                        case 2:
+                            r = _b.apply(void 0, [_c.sent()]);
+                            chai_1.expect(r.eventArgs, "Event UpdateConfirmed was not fired")
+                                .to.be.equal("Signer is spamming");
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it("Violating admin change (Spamming #1)", function () { return __awaiter(_this, void 0, void 0, function () {
+                var r, _a, _b, _c, _d, _e;
+                return __generator(this, function (_f) {
+                    switch (_f.label) {
+                        case 0:
+                            _a = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: king })];
+                        case 1:
+                            r = _a.apply(void 0, [_f.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired (First Admin)")
+                                .to.be.equal("UpdateConfirmed");
+                            _b = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: queen })];
+                        case 2:
+                            r = _b.apply(void 0, [_f.sent()]);
+                            chai_1.expect(r.eventName, "Event UpdateConfirmed was not fired (Second Admin)")
+                                .to.be.equal("UpdateConfirmed");
+                            _c = chai_1.expect;
+                            return [4 /*yield*/, pr.isAdministrator(joker)];
+                        case 3:
+                            _c.apply(void 0, [(_f.sent()),
+                                "Should not be admin"])
+                                .to.be.false;
+                            _d = ReturnEventAndArgs;
+                            return [4 /*yield*/, pr.updateAdministratorKey(ace, joker, { from: queen })];
+                        case 4:
+                            r = _d.apply(void 0, [_f.sent()]);
+                            chai_1.expect(r.eventArgs, "Event Event with arg: One of signers is spamming was not fired")
+                                .to.be.equal("One of signers is spamming");
+                            _e = chai_1.expect;
+                            return [4 /*yield*/, pr.isAdministrator(joker)];
+                        case 5:
+                            _e.apply(void 0, [(_f.sent()),
+                                "Should not be admin"])
+                                .to.be.false;
+                            return [2 /*return*/];
+                    }
                 });
             }); });
             return [2 /*return*/];

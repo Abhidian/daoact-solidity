@@ -15,6 +15,13 @@ var joker;
 var amount:number;
 var magpie;
 
+function ReturnEventAndArgs(returnVal)
+{
+    return { eventName: returnVal.logs[0].event, 
+             eventArgs: returnVal.logs[0].args.action,
+             raw: returnVal }
+}
+
 function GetBalance(addr)
 { return web3.eth.getBalance(addr).toNumber(); }
 
@@ -55,7 +62,7 @@ contract("PreICO", (accounts) =>
                 "Passing 0 as param")
                 .to.be.true;
 
-            expect(await expectThrow(PreICO.new(0, queen, jack, ace)), 
+           expect(await expectThrow(PreICO.new(0, queen, jack, ace)), 
                 "Passing first admin as 0 ")
                 .to.be.true;
 
@@ -107,7 +114,7 @@ contract("PreICO", (accounts) =>
         })  
     })
 
-    describe.only("Penetrating transfer function", async()=>
+    describe("Penetrating transfer function", async()=>
     {
         before(async()=>
         {
@@ -140,10 +147,19 @@ contract("PreICO", (accounts) =>
                 .by(amount);
             
             let balance = GetBalance(magpie);
+            
+            let r = ReturnEventAndArgs(await pr.transfer(magpie, amount, {from: king}))
 
-            await pr.transfer(magpie, amount, {from: king});
+            expect(r.eventName, 
+                "Event Violation was not fired")
+                .to.be.equal("TransferConfirmed");
+
             await pr.transfer(magpie, amount, {from: queen});
-            await pr.transfer(magpie, amount, {from: jack}); 
+            r = ReturnEventAndArgs(await pr.transfer(magpie, amount, {from: jack}));
+
+            expect(r.raw.logs[1].args.success, 
+                "Trasnfer was not successful")
+                .to.be.true;
 
             expect(GetBalance(magpie),
                 "Transfer should've increase balance")
@@ -168,16 +184,14 @@ contract("PreICO", (accounts) =>
                 
                 await pr.transfer(magpie, amount, {from: king});
 
-                expect(await expectThrow(pr.transfer(magpie, amount*2, {from: queen})),
-                    "Expected throw because amount is different")
-                    .to.be.true;
-                    
-                await pr.transfer(magpie, amount, {from: jack}); 
-                
-                expect(await expectThrow(pr.transfer(magpie, amount*2, {from: jack})),
-                    "Expected throw because amount is different")
-                    .to.be.true;
+                let r = ReturnEventAndArgs(await pr.transfer(magpie, amount/2, {from: king}));
 
+                expect(r.eventArgs, 
+                    "Event Violation was not fired")
+                    .to.be.equal("Incorrect amount of wei passed");
+                    
+                await pr.transfer(magpie, amount, {from: king});
+                await pr.transfer(magpie, amount, {from: jack}); 
                 await pr.transfer(magpie, amount, {from: queen});
 
                 expect(GetBalance(magpie),
@@ -190,13 +204,13 @@ contract("PreICO", (accounts) =>
                 let balance = GetBalance(magpie);
                 
                 await pr.transfer(magpie, amount, {from: king});
-                await pr.transfer(magpie, amount, {from: king});
+                let r = ReturnEventAndArgs(await pr.transfer(magpie, amount, {from: king}));
 
-                /*expect(await expectThrow(pr.transfer(magpie, amount, {from: king})),
-                    "Expected to throw because spamming")
-                    .to.be.true;*/
+                expect(r.eventArgs, 
+                    "Event Violation was notfired")
+                    .to.be.equal("Signer is spamming");
                 
-                // Previous transfer confirmation sequence - need to start from begining 
+                // Previous transfer confirmation sequence got dropped - need to start from begining 
                 await pr.transfer(magpie, amount, {from: king});
                 await pr.transfer(magpie, amount, {from: jack}); 
                 await pr.transfer(magpie, amount, {from: queen}); 
@@ -204,13 +218,128 @@ contract("PreICO", (accounts) =>
                 expect(GetBalance(magpie),
                     "Transfer should've increase balance")
                     .to.equal(+balance + +amount);  
+            })
 
-                // TODO: strange behaviour if sending inncorret amount it throws
-                // but if I spam it does not throw (expected no throw in either way)
+            it("Trying to spam (level2)", async()=>
+            {
+                let balance = GetBalance(magpie);
+
+                await pr.transfer(magpie, amount, {from: king});
+                await pr.transfer(magpie, amount, {from: queen});
+
+                let r = ReturnEventAndArgs(await pr.transfer(magpie, amount, {from: queen}));
+
+                expect(r.eventArgs, 
+                    "Event Violation was notfired")
+                    .to.be.equal("One of signers is spamming");
             })
         })
+    })
 
+    describe("Testing updateAdministratorKey", async()=>
+    {
+        beforeEach(async()=>
+        {
+            pr = await PreICO.new(king, queen, jack, ace);
+            amount = web3.toWei(1, "ether");
+        })
 
-        
+        it("Passing Incorrect params", async()=>
+        {
+            expect(await expectThrow(pr.updateAdministratorKey(king, king, {from:king})), 
+                "Giving admin to admin")
+                .to.be.true;
+
+            expect(await expectThrow(pr.updateAdministratorKey(king, 0, {from:king})), 
+                "Giving admin to 0")
+                .to.be.true;
+        })
+
+        it("Should correctly change admins", async()=>
+        {
+            let r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:king}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("UpdateConfirmed");
+
+            r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:queen}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("UpdateConfirmed");
+
+            r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:jack}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("UpdateConfirmed");
+
+            expect(r.raw.logs[1].event, 
+                "Event KeyReplaced was not fired")
+                .to.be.equal("KeyReplaced");
+        })
+
+        it  ("Violating admin change (oldAddress)", async()=>
+        {
+            let r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:king}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("UpdateConfirmed");
+
+            r = ReturnEventAndArgs(await pr.updateAdministratorKey(jack, joker, {from:queen}));
+            expect(r.eventArgs, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("Old addresses do not match");
+        })
+
+        it("Violating admin change (newAddress)", async()=>
+        {
+            let r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:king}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("UpdateConfirmed");
+
+            r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, magpie, {from:queen}));
+            expect(r.eventArgs, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("New addresses do not match");
+        })
+
+        it("Violating admin change (Spamming #0)", async()=>
+        {
+            let r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:king}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("UpdateConfirmed");
+
+            r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:king}));
+            expect(r.eventArgs, 
+                "Event UpdateConfirmed was not fired")
+                .to.be.equal("Signer is spamming");
+        })
+
+        it("Violating admin change (Spamming #1)", async()=>
+        {
+            let r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:king}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired (First Admin)")
+                .to.be.equal("UpdateConfirmed");
+
+            r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:queen}));
+            expect(r.eventName, 
+                "Event UpdateConfirmed was not fired (Second Admin)")
+                .to.be.equal("UpdateConfirmed");
+            
+             expect((await pr.isAdministrator(joker)),
+                "Should not be admin")
+                .to.be.false;
+
+            r = ReturnEventAndArgs(await pr.updateAdministratorKey(ace, joker, {from:queen}));
+            expect(r.eventArgs, 
+                "Event Event with arg: One of signers is spamming was not fired")
+                .to.be.equal("One of signers is spamming");
+
+            expect((await pr.isAdministrator(joker)),
+                "Should not be admin")
+                .to.be.false;
+        })
     })
 })
