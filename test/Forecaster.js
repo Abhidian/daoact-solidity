@@ -586,4 +586,4 @@ contract("ForecasterReward", function (accounts) {
         });
     }); });
 });
-//# sourceMappingURL=testForecaster.js.map
+//# sourceMappingURL=Forecaster.js.map

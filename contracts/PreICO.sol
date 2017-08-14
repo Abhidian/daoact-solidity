@@ -227,7 +227,7 @@ contract PreICO{
     if(updating.newAddress != _newAddress){
         Violated("New addresses do not match",msg.sender);
         ResetUpdateState();
-        return;
+        return; 
     }
     
     // make sure admin is not trying to spam

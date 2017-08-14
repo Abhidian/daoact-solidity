@@ -36,11 +36,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
+var chai_1 = require("chai");
+var index_1 = require("./helpers/index");
 var PreICO = artifacts.require("./PreICO.sol");
 var Tempo = require('@digix/tempo');
 var _a = require('@digix/tempo')(web3), wait = _a.wait, waitUntilBlock = _a.waitUntilBlock;
-var chai_1 = require("chai");
-var index_1 = require("./helpers/index");
+var web3Instance = web3;
 var pr = null; // forecaster instance
 var king;
 var queen;
@@ -552,4 +553,4 @@ contract("PreICO", function (accounts) {
         });
     }); });
 });
-//# sourceMappingURL=testPreICO.js.map
+//# sourceMappingURL=PreICO.js.map

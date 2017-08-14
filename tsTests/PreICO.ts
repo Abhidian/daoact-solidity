@@ -1,9 +1,11 @@
+import { expect, increase } from "chai";
+import Web3 = require('web3');
+import { expectThrow, revert, snapshot, mineBlocks, reset } from "./helpers/index"
+
 const PreICO = artifacts.require("./PreICO.sol");
 const Tempo = require('@digix/tempo');
 const { wait, waitUntilBlock } = require('@digix/tempo')(web3)
-import { expect, increase } from "chai";
-
-import { expectThrow, revert, snapshot, mineBlocks, reset } from "./helpers/index"
+const web3Instance: Web3 = web3;
 
 var pr = null; // forecaster instance
 
