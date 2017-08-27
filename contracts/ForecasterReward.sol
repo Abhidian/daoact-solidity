@@ -1,4 +1,4 @@
-pragma solidity 0.4.13;
+pragma solidity 0.4.15;
 
 import './Haltable.sol';
 import './SafeMath.sol';
@@ -48,7 +48,7 @@ contract ForecasterReward is Haltable {
   event Transfer(address indexed receiver, uint weiAmount);
 
   // Crowdsale end time has been changed
-  event EndsAtChanged(uint endsAt);
+  event EndsAtChanged(uint endTimestamp);
 
   function ForecasterReward(
       address frOwner,
@@ -138,21 +138,21 @@ contract ForecasterReward is Haltable {
   /**
    * @return endDate Crowdsale closing date
    */
-  function fundingEndsAt() public constant returns(uint ){
+  function fundingEndsAt() public constant returns(uint){
       return endsAt;
   }
   
   /**
    * @return investors Total of distinct investors
    */
-  function distinctInvestors() public constant returns(uint investors){
+  function distinctInvestors() public constant returns(uint){
       return investorCount;
   }
   
   /**
    * @return investments Crowdsale closing date
    */
-  function investments() public constant returns(uint investments){
+  function investments() public constant returns(uint){
       return totalInvestments;
   }
   
