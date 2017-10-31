@@ -5,14 +5,14 @@
  *  Draglet GbmH
  */
 
-pragma solidity ^0.4.16;
+pragma solidity 0.4.17;
 
-import '../token/SafeMath.sol';
-import '../token/Ownable.sol';
+import '../misc/SafeMath.sol';
+import '../misc/Ownable.sol';
 
 contract ACTToken{
-    function isTokenContract() returns (bool);
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool);
+    function isTokenContract() public returns (bool);
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool);
 }
 
 /**
@@ -23,7 +23,7 @@ contract ACTToken{
  * on a token per ETH rate. Funds collected are forwarded to a wallet
  * as they arrive.
  */
-contract Crowdsale is Ownable{
+contract Crowdsale is Ownable {
   using SafeMath for uint256;
 
   // The token being sold
@@ -56,7 +56,14 @@ contract Crowdsale is Ownable{
   event Finalized();
 
 
-  function Crowdsale(address _token,address _tokenStore,uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet) Ownable(msg.sender) {
+  function Crowdsale(
+      address _token,
+      address _tokenStore,
+      uint256 _startTime, 
+      uint256 _endTime, 
+      uint256 _rate, 
+      address _wallet) public
+    {
     require(_startTime >= now);
     require(_endTime >= _startTime);
     require(_rate > 0);
@@ -64,6 +71,7 @@ contract Crowdsale is Ownable{
     require(_token != 0x0);
     require(tokenStore != 0x0);
 
+    owner = msg.sender;
     token = ACTToken(_token);
     require(token.isTokenContract());
     tokenStore = _tokenStore;
@@ -75,7 +83,7 @@ contract Crowdsale is Ownable{
 
 
   // fallback function can be used to buy tokens
-  function () payable {
+  function () payable public {
     buyTokens(msg.sender);
   }
 

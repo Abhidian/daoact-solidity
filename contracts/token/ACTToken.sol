@@ -5,22 +5,21 @@
  *  Draglet GbmH
  */
 
-pragma solidity ^0.4.16;
+pragma solidity 0.4.17;
 
-import './Ownable.sol';
-import './SafeMath.sol';
-import './Pausable.sol';
-import './ReentrancyGuard.sol';
+import '../misc/SafeMath.sol';
+import '../misc/Pausable.sol';
+import '../misc/ReentrancyGuard.sol';
 
 
 contract ACTToken is Pausable, ReentrancyGuard{
 
-  using SafeMath for uint256;
+  using SafeMath for *;
 
   string constant public name = "ACT Token";
   string constant public symbol = "ACT";
   uint8 constant public decimals = 18;
-  uint256 private supply = 10e9 * 10e18;
+  uint256 private supply = 10e9 * 1e18; // 10 Billions + 18 decimal places or 100 Octilions
   string constant public version = "v1.0.0";
 
   mapping(address => uint256) private balances;
@@ -29,9 +28,10 @@ contract ACTToken is Pausable, ReentrancyGuard{
   event Approval(address indexed owner, address indexed spender, uint256 value);
   event Transfer(address indexed from, address indexed to, uint256 value);
 
-  function ACTToken() Ownable(0x1538EF80213cde339A333Ee420a85c21905b1b2D){
-    // Allocate initial balance to the owner //
-    balances[0x244092a2FECFC48259cf810b63BA3B3c0B811DCe] = supply;
+  function ACTToken(address setOwner, address setTokenOwner) public
+  {
+    owner = setOwner;
+    balances[setTokenOwner] = supply;
   }
 
 
@@ -126,7 +126,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
     return true;
   }
 
-  function totalSupply() constant returns (uint256){
+  function totalSupply() public constant returns (uint256){
     return supply;
   }
 
@@ -146,7 +146,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
    * @notice Migrate tokens to the new token contract.
    * @dev Required state: Operational Migration
    * @param _value The amount of token to be migrated
-   */
+   */   
   function migrate(uint256 _value) external nonReentrant isUpgrading {
     require(_value > 0);
     require(_value <= balances[msg.sender]);
@@ -225,7 +225,7 @@ contract MigrationAgent {
   function migrateFrom(address _from, uint256 _value) external returns(bool);
   
   /** Interface marker */
-  function isMigrationAgent() external constant returns (bool) {
+  function isMigrationAgent() external pure returns (bool) {
     return true;
   }
 }

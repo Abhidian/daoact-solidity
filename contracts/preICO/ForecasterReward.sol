@@ -1,7 +1,7 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.17;
 
-import './Haltable.sol';
-import './SafeMath.sol';
+import '../misc/Haltable.sol';
+import '../misc/SafeMath.sol';
 
 contract ForecasterReward is Haltable {
 
@@ -55,7 +55,7 @@ contract ForecasterReward is Haltable {
       uint startTimestamp, 
       uint endTimestamp, 
       address forecastersAddr, 
-      address preICOContractAddr) 
+      address preICOContractAddr) public
   {
     
     require(frOwner != 0x00);
@@ -75,7 +75,7 @@ contract ForecasterReward is Haltable {
   /**
    * Allow investor to just send in money
    */
-  function() nonZero payable{
+  function() nonZero payable public{
     buy(msg.sender);
   }
 
@@ -191,7 +191,7 @@ contract ForecasterReward is Haltable {
    * but we trust owners know what they are doing.
    *
    */
-  function setEndsAt(uint _endsAt) onlyOwner {
+  function setEndsAt(uint _endsAt) public onlyOwner {
     
     // Don't change past
     require(_endsAt > now);

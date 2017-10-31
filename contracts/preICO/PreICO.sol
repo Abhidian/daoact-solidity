@@ -1,6 +1,6 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.17;
 
-import "./SafeMath.sol";
+import "../misc/SafeMath.sol";
 
 /**
  * PreICO is designed to hold funds of pre ico. Account is controlled by four administratos. To trigger a payout
@@ -54,7 +54,7 @@ contract PreICO{
   event EventUpdateWasReset();
   
   
-  function PreICO(address admin1,address admin2,address admin3,address admin4){
+  function PreICO(address admin1,address admin2,address admin3,address admin4) public {
 
       require(admin1 != 0);
       require(admin2 != 0);
@@ -162,7 +162,7 @@ contract PreICO{
   /** 
    * @dev Fallback function, receives value and emits a deposit event. 
    */
-  function() payable {
+  function() payable public {
     // just being sent some cash?
     if (msg.value > 0)
       Deposit(msg.sender, msg.value);

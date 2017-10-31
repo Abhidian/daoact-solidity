@@ -5,7 +5,7 @@
  *  Draglet GbmH
  */
 
-pragma solidity ^0.4.16;
+pragma solidity 0.4.17;
 
 import "./Ownable.sol";
 

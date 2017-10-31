@@ -57,3 +57,6 @@ export const reset = () => {
     function(err, result) { resolve(); })
   })
 }
+
+export function lastBlockTimeInSec()
+{ return web3.eth.getBlock(web3.eth.blockNumber).timestamp }

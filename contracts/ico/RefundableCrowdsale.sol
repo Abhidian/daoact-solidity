@@ -5,7 +5,7 @@
  *  Draglet GbmH
  */
 
-pragma solidity ^0.4.16;
+pragma solidity 0.4.17;
 
 import './CappedCrowdsale.sol';
 import './RefundVault.sol';
@@ -22,7 +22,7 @@ contract RefundableCrowdsale is CappedCrowdsale {
   // refund vault used to hold funds while crowdsale is running
   RefundVault public vault;
 
-  function RefundableCrowdsale(uint256 _goal) {
+  function RefundableCrowdsale() public {
     vault = new RefundVault(wallet);
   }
 

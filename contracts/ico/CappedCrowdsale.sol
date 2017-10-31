@@ -5,7 +5,7 @@
  *  Draglet GbmH
  */
 
-pragma solidity ^0.4.16;
+pragma solidity 0.4.17;
 
 import './Crowdsale.sol';
 
@@ -25,7 +25,7 @@ contract CappedCrowdsale is Crowdsale {
   // price of ether in usd
   uint256 public ethPrice = 300;
 
-  function CappedCrowdsale(uint256 _softCap,uint256 _hardCap) {
+  function CappedCrowdsale(uint256 _softCap,uint256 _hardCap) public {
     require(_softCap > 0);
     require(_hardCap > 0);
     
@@ -48,8 +48,7 @@ contract CappedCrowdsale is Crowdsale {
   // overriding Crowdsale#validPurchase to add extra cap logic
   // @return true if investors can buy at the moment
   function validPurchase() internal view returns (bool) {
-    bool withinCap = weiRaised.add(msg.value) <= hardCap;
-    return super.validPurchase() && withinCap;
+    return super.validPurchase() && weiRaised.add(msg.value) <= hardCap;
   }
 
   // overriding Crowdsale#hasEnded to add cap logic

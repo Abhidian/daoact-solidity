@@ -27,7 +27,7 @@ function currentTimeInSec()
 { return Math.floor(new Date().getTime() / 1000);}
 
 function lastBlockTimeInSec()
-{ return web3.eth.getBlock(web3.eth.blockNumber).timestamp}
+{ return web3.eth.getBlock(web3.eth.blockNumber).timestamp }
 
 contract("ForecasterReward", (accounts) =>
 {

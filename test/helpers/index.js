@@ -113,4 +113,6 @@ exports.reset = function () {
         web3.currentProvider.sendAsync({ jsonrpc: "2.0", method: "evm_reset", id: 0xabce }, function (err, result) { resolve(); });
     });
 };
+function lastBlockTimeInSec() { return web3.eth.getBlock(web3.eth.blockNumber).timestamp; }
+exports.lastBlockTimeInSec = lastBlockTimeInSec;
 //# sourceMappingURL=index.js.map

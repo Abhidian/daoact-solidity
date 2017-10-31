@@ -5,10 +5,10 @@
  *  Draglet GbmH
  */
 
-pragma solidity ^0.4.16;
+pragma solidity 0.4.17;
 
-import '../token/SafeMath.sol';
-import '../token/Ownable.sol';
+import '../misc/SafeMath.sol';
+import '../misc/Ownable.sol';
 
 /**
  * @title RefundVault
@@ -29,7 +29,9 @@ contract RefundVault is Ownable {
   event RefundsEnabled();
   event Refunded(address indexed beneficiary, uint256 weiAmount);
 
-  function RefundVault(address _wallet) Ownable(msg.sender) {
+  function RefundVault(address _wallet) public
+  {
+    owner = msg.sender;
     require(_wallet != 0x0);
     wallet = _wallet;
     state = State.Active;
