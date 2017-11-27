@@ -1,16 +1,3 @@
-# daoact-solidity
-
-To deploy linked contracts in app\alpha run:
-```
-truffle exec migrations\DeployAlphaApp.js --network ropsten
-```
-
-To run tests:
-```
-tsw -w
-truffle test
-```
-
 # DAOACT Contract Deployment
 
 DAOACT is splitted into multiple contracts so each contract have some interaface functions   

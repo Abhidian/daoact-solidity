@@ -4,8 +4,7 @@
  *  Bilal Arif - https://twitter.com/furusiyya_
  *  Draglet GbmH
  */
-
-pragma solidity 0.4.17;
+pragma solidity 0.4.18;
 
 import "./Ownable.sol";
 
