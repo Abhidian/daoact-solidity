@@ -5,7 +5,7 @@
  *  Draglet GbmH
  */
 
-pragma solidity 0.4.17;
+pragma solidity 0.4.18;
 
 import '../misc/SafeMath.sol';
 import '../misc/Pausable.sol';
