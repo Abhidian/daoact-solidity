@@ -16,10 +16,10 @@ contract ACTToken is Pausable, ReentrancyGuard{
 
   using SafeMath for *;
 
-  string constant public name = "ACT Token";
-  string constant public symbol = "ACT";
-  uint8 constant public decimals = 18;
-  uint256 private supply = 10e9 * 1e18; // 10 Billions + 18 decimal places or 100 Octilions
+  string constant public name = "Curation Engine 7";
+  string constant public symbol = "CE7";
+  uint8 constant public decimals = 4;
+  uint256 private supply = 10e6 * 1e4; // 10 Million + 18 decimal places or 100 Octilions
   string constant public version = "v1.0.0";
 
   mapping(address => uint256) private balances;
