@@ -337,3 +337,4 @@ contract("ACTToken", function (accounts) {
     }); });
 });
 //# sourceMappingURL=ACTToken.js.map
+//test
