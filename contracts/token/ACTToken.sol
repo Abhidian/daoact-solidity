@@ -19,7 +19,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
   string constant public name = "Curation Engine 7";
   string constant public symbol = "CE7";
   uint8 constant public decimals = 4;
-  uint256 private supply = 10e6 * 1e4; // 10 Million + 18 decimal places or 100 Octilions
+  uint256 private supply = 10e6 * 1e4; // 10 Million + 4 decimals
   string constant public version = "v1.0.0";
 
   mapping(address => uint256) private balances;

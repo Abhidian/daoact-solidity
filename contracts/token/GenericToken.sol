@@ -83,7 +83,7 @@ contract GenericToken is StandardToken, Ownable, MigrationAgent
     string public symbol = "GT";
 
     uint public decimals = 18; 
-    uint private initialSupply = 10e9 * 1e18; // 10 Billions + 18 decimal places 100 Octilions
+    uint private initialSupply = 10e6 * 1e4;
 
     function GenericToken() public
     {
