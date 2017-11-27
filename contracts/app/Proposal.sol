@@ -1,9 +1,10 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.18;
 
 import './ProposalController.sol';
 
 contract Quorum { function check(uint _upVotes, uint _downVotes) external returns(bool, uint); }
-contract Vote { function withdraw(address _from,uint256 _value) public returns(bool); }
+contract Vote { function withdraw(address _from, uint256 _value) public returns(bool); }
+contract Curator { function calculateReputation(address _curatorAddress, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public; }
 
 contract Proposal {
     
@@ -11,6 +12,7 @@ contract Proposal {
     ProposalController controller;
     Quorum quorumContract;
     Vote voteContract;
+    Curator curatorContract;
     address controllerAddress;
     
     //proposal status
@@ -34,12 +36,14 @@ contract Proposal {
         bool downtick;
         bool flag;
     }
+    address[] curators;
     
     //proposal fields
     address private submiter; //address of submitter
     address private approver; //address of signerer to withdraw funds
     bool private activated; //is proposal activated by curators
     bool private quorumReached; //is quorum rached
+    uint8 private flagsCount; //total flags count
     uint32 private curationPeriod = 48 hours;
     uint32 private votingPeriod = 48 hours;
     uint32 private directFundingPeriod = 72 hours;
@@ -50,7 +54,7 @@ contract Proposal {
     bytes32 public documentsLink;
     uint public value;
     uint public funds; //how much funds have beed already funded
-    uint public commentsIndex;
+    uint public commentsIndex; //to get comments by index
     uint public upVotes; // up votes from citizens
     uint public downVotes; //down votes from citizens
     
@@ -99,7 +103,7 @@ contract Proposal {
     //citizen votes
     function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) {
         
-        require(voted[msg.sender] == false);
+        require(voted[_voter] == false);
         
         if (now > id + votingPeriod) {
             status = Status.directFunding;
@@ -120,58 +124,72 @@ contract Proposal {
         voted[_voter] = true;
     }
     
-    //curators upticks
-    function tick(address _curator, uint _tick, bool _flag) external onlyController checkStatus(Status.curation) {
-        if (_flag == true) {
-            require(reactions[_curator].flag == false);
-            require(reactions[_curator].uptick == false);
-            require(reactions[_curator].downtick == false);
-            reactions[_curator].flag = true;
-        }
+    //curators ticks
+    function tick(address _curator, uint _tick) external onlyController checkStatus(Status.curation) {
+        require(reactions[_curator].flag == false);
+        require(reactions[_curator].uptick == false);
+        require(reactions[_curator].downtick == false);
         if (_tick == 1) {
-            require(reactions[_curator].uptick == false);
-            require(reactions[_curator].downtick == false);
             reactions[_curator].uptick = true;
         } else if (_tick == 2) {
-            require(reactions[_curator].downtick == false);
-            require(reactions[_curator].uptick == false);
             reactions[_curator].downtick = true;
+        } else if (_tick == 3) {
+            //reputations score over 100
+            //ace balance should be more then ???
+            reactions[_curator].flag = true;
+            flagsCount ++;
+            if (flagsCount >= 5) {
+                status = Status.closed;
+            }
         } else {
             revert();
         }
+        curators.push(_curator);
+        checkPeriod();
     }
     
-    function flag(address _curator) external onlyController {
-        require(reactions[_curator].flag == false);
-        reactions[_curator].flag = true;
-        //reputations score over 100
-        //five flags will close proposal
-        //ace balance should be more then 50million
-    }
-    
+    //curators comments
     function addComment(bytes32 _text) external onlyController checkStatus(Status.curation) {
-        require(status == Status.curation);
         require(_text.length > 0);
         comments[commentsIndex] = Comment(now, msg.sender, _text, 0, 0);
         commentsIndex ++;
-        
-        if(now > id + curationPeriod) {
-            status = Status.voting;
-        }
+        checkPeriod();
     }
     
+    //curators votes for comments
     function voteForComment(uint _index, uint _vote) external onlyController checkStatus(Status.curation) {
         if (_vote == 1) {
             comments[_index].upticks[msg.sender] ++;
             comments[_index].totalUpticks ++;
-        } else if(_vote == 2) {
+        } else if (_vote == 2) {
             comments[_index].downticks[msg.sender] ++;
             comments[_index].totalDownticks ++;
         } else {
             revert();
         }
+        checkPeriod();
+    }
+
+    function fundProposal() external payable onlyController checkStatus(Status.directFunding) {
+        require(msg.value > 0);
+        require(status == Status.directFunding);
+        funds += msg.value;
     }
     
+    function sendReputation() internal {
+        for (uint i; i < curators.length; i ++) {
+            curatorContract.calculateReputation(
+                curators[i],
+                activated,
+                quorumReached,
+                reactions[curators[i]].uptick,
+                reactions[curators[i]].downtick,
+                reactions[curators[i]].flag
+            );
+        }
+    }
+    
+    //getters
     function getComment(uint _index) external view onlyController returns(uint, address, bytes32, uint, uint) {
         return (
             comments[_index].timestamp,
@@ -181,16 +199,24 @@ contract Proposal {
             comments[_index].totalDownticks
         );
     }
-    
-    function fundProposal() external payable onlyController checkStatus(Status.directFunding) {
-        require(msg.value > 0);
-        require(status == Status.directFunding);
-        funds += msg.value;
+
+    function getReaction(address _curator) external view onlyController returns(bool, bool, bool) {
+        return (
+            reactions[_curator].uptick,
+            reactions[_curator].downtick,
+            reactions[_curator].flag
+        );
     }
    
    function wirthdrawFunds(address _sender) external onlyController checkStatus(Status.closed) {
         require(_sender == submiter);
         submiter.transfer(this.balance);
         //add multisig
-   }
+    }
+    
+    function checkPeriod() internal {
+        if (now > id + curationPeriod) {
+            status = Status.voting;
+        }
+    }
 }
