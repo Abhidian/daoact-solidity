@@ -1,0 +1,13 @@
+{
+    "abi": "[{\"constant\":false,\"inputs\":[{\"name\":\"_curatorAddress\",\"type\":\"address\"},{\"name\":\"_activation\",\"type\":\"bool\"},{\"name\":\"_quorum\",\"type\":\"bool\"},{\"name\":\"_uptick\",\"type\":\"bool\"},{\"name\":\"_downtick\",\"type\":\"bool\"},{\"name\":\"_flag\",\"type\":\"bool\"}],\"name\":\"calculateReputation\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+    "bytecode": "",
+    "functionHashes": {
+        "calculateReputation(address,bool,bool,bool,bool,bool)": "3d648b88"
+    },
+    "gasEstimates": {
+        "creation": {},
+        "external": {},
+        "internal": {}
+    },
+    "runtimeBytecode": ""
+}

@@ -84,12 +84,13 @@ contract Proposal {
         description = _description;
         videoLink = _videoLink;
         documentsLink = _documentsLink;
-        value = _value;
+        value = _value * 1 ether;
         status = Status.curation;
         activated = false;
         quorumReached = false;
     }
-    
+
+    //modifiers
     modifier onlyController() {
         require(msg.sender == controllerAddress);
         _;
@@ -100,35 +101,15 @@ contract Proposal {
         _;
     }
     
-    //citizen votes
-    function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) {
-        
-        require(voted[_voter] == false);
-        
-        if (now > id + votingPeriod) {
-            status = Status.directFunding;
-            (quorumReached, funds) = quorumContract.check(upVotes, downVotes);
-        }
-        
-        require(voteContract.withdraw(msg.sender, 1));
-        
-        if (_vote == 1) {
-            upVotes ++;
-        } else if (_vote == 2) {
-            downVotes ++;
-            against[_voter] = true;
-        } else {
-            revert();
-        }
-        
-        voted[_voter] = true;
-    }
+    // CURATORS //
     
     //curators ticks
+    //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal
     function tick(address _curator, uint _tick) external onlyController checkStatus(Status.curation) {
         require(reactions[_curator].flag == false);
         require(reactions[_curator].uptick == false);
         require(reactions[_curator].downtick == false);
+
         if (_tick == 1) {
             reactions[_curator].uptick = true;
         } else if (_tick == 2) {
@@ -157,6 +138,7 @@ contract Proposal {
     }
     
     //curators votes for comments
+    //1 == up tick, 2 == down tick
     function voteForComment(uint _index, uint _vote) external onlyController checkStatus(Status.curation) {
         if (_vote == 1) {
             comments[_index].upticks[msg.sender] ++;
@@ -170,12 +152,51 @@ contract Proposal {
         checkPeriod();
     }
 
+    // CITIZEN //
+
+    //citizen votes
+    // 1 == vote up, 2 == vote down
+    function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) {
+        
+        require(voted[_voter] == false);
+        
+        if (now > id + votingPeriod) {
+            status = Status.directFunding;
+            (quorumReached, funds) = quorumContract.check(upVotes, downVotes);
+        }
+        
+        require(voteContract.withdraw(msg.sender, 1));
+        
+        if (_vote == 1) {
+            upVotes ++;
+        } else if (_vote == 2) {
+            downVotes ++;
+            against[_voter] = true;
+        } else {
+            revert();
+        }
+        
+        voted[_voter] = true;
+    }
+
+    //direct funding
     function fundProposal() external payable onlyController checkStatus(Status.directFunding) {
         require(msg.value > 0);
         require(status == Status.directFunding);
         funds += msg.value;
+
+        if (funds >= value) {
+            status = Status.closed;
+        }
     }
-    
+
+    function wirthdrawFunds(address _sender) external onlyController checkStatus(Status.closed) {
+        require(_sender == submiter);
+        submiter.transfer(this.balance);
+        //add multisig
+    }
+
+    //internal functions
     function sendReputation() internal {
         for (uint i; i < curators.length; i ++) {
             curatorContract.calculateReputation(
@@ -186,6 +207,18 @@ contract Proposal {
                 reactions[curators[i]].downtick,
                 reactions[curators[i]].flag
             );
+        }
+    }
+    
+    function checkPeriod() internal {
+        if (now > id + curationPeriod) {
+            status = Status.voting;
+        }
+        if (now > id + curationPeriod + votingPeriod) {
+            status = Status.directFunding;
+        }
+        if (now > id + curationPeriod + votingPeriod + directFundingPeriod) {
+            status = Status.closed;
         }
     }
     
@@ -206,17 +239,5 @@ contract Proposal {
             reactions[_curator].downtick,
             reactions[_curator].flag
         );
-    }
-   
-   function wirthdrawFunds(address _sender) external onlyController checkStatus(Status.closed) {
-        require(_sender == submiter);
-        submiter.transfer(this.balance);
-        //add multisig
-    }
-    
-    function checkPeriod() internal {
-        if (now > id + curationPeriod) {
-            status = Status.voting;
-        }
     }
 }
