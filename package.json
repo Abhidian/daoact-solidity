@@ -1,6 +1,6 @@
 {
   "name": "daoact",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ForecasterReward.sol is the contact that collect funds from investors and forward to forecasters and PreICO.sol contract",
   "main": "truffle.js",
   "directories": {
