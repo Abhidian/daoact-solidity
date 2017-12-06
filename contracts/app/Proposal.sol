@@ -1,19 +1,34 @@
 pragma solidity ^0.4.18;
 
-import './ProposalController.sol';
+import '../misc/SafeMath.sol';
 
-contract Quorum { function check(uint _upVotes, uint _downVotes) external returns(bool, uint); }
-contract Vote { function withdraw(address _from, uint256 _value) public returns(bool); }
-contract Curator { function calculateReputation(address _curatorAddress, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public; }
+//interfaces
+contract ProposalController {}
+contract Quorum { 
+    function checkCitizenQuorum(uint _upVotes, uint _downVotes) external returns(bool, uint);
+    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool); 
+}
+contract Vote { 
+    function withdraw(address _from, uint256 _value) public returns(bool); 
+}
+contract Curator { 
+    function calculatePosotiveReputation(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
+    function calculateNegativeReputation(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
+    function markAsProcessed(address _proposal, address _curator) external;
+    function limits(address _curator, uint8 _action) external returns(bool);
+    function getReputation (address _curator) external view returns(uint);
+    function calcEffort (uint _effort, address _curator) external;
+}
 
 contract Proposal {
+
+    using SafeMath for *;
     
     //system addresses variables
     ProposalController controller;
     Quorum quorumContract;
     Vote voteContract;
     Curator curatorContract;
-    address controllerAddress;
     
     //proposal status
     enum Status { curation, voting, directFunding, closed }
@@ -22,12 +37,8 @@ contract Proposal {
     //curators comment
     struct Comment {
         uint timestamp;
-        address author;
         bytes32 text;
-        mapping(address => uint) upticks;
-        mapping(address => uint) downticks;
         uint totalUpticks;
-        uint totalDownticks;
     }
     
     //curators reaction
@@ -36,58 +47,76 @@ contract Proposal {
         bool downtick;
         bool flag;
     }
-    address[] curators;
     
     //proposal fields
-    address private submiter; //address of submitter
+    address private controllerAddress; //controller address for modifier
+    address private submitter; //address of submitter
     address private approver; //address of signerer to withdraw funds
     bool private activated; //is proposal activated by curators
     bool private quorumReached; //is quorum rached
+    bool private withdrawn; //withdraw indocator
+    bool private pendingWithdraw; //indicate that submitter requested withdraw proccess
     uint8 private flagsCount; //total flags count
     uint32 private curationPeriod = 48 hours;
     uint32 private votingPeriod = 48 hours;
     uint32 private directFundingPeriod = 72 hours;
+    uint private totalUpticks; //total proposal upticks from curators
+    uint private totalDownticks; //total proposal downticks from curators
+
     uint public id; //timestamp of proposal
-    bytes32 public title;
-    bytes32 public description;
-    bytes32 public videoLink;
-    bytes32 public documentsLink;
-    uint public value;
+    bytes32 public title; //proposal title
+    bytes32 public description; //proposal description
+    bytes32 public videoLink; //proposal video url
+    bytes32 public documentsLink; //proposal documents url
+    uint public value; //proposal requested amount
     uint public funds; //how much funds have beed already funded
-    uint public commentsIndex; //to get comments by index
-    uint public upVotes; // up votes from citizens
-    uint public downVotes; //down votes from citizens
+    uint public upVotes; //total up votes from citizens
+    uint public downVotes; //total down votes from citizens
     
     //comments storage
-    mapping(uint => Comment) comments;
+    mapping(address => Comment) comments;
     //agains citizens votes storage to be able to send back vote in case of quorum not reached
     mapping(address => bool) against;
-    //cicitizen voters storage
+    //citizen voters storage
     mapping(address => bool) voted;
     //curators reactions storage
     mapping(address => Reaction) reactions;
+    //indicate curator action and allow to get reputation
+    mapping(address => bool) reputationExisted;
     
-    function Proposal(address _submiter, address _approver, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
-        require(_submiter != address(0));
+    function Proposal(address _submitter, address _approver, uint fee, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
+        require(_submitter != address(0));
         require(_approver != address(0));
-        require(_approver != _submiter);
+        require(_approver != _submitter);
         require(_title.length > 0);
         require(_description.length > 0);
         require(_videoLink.length > 0);
         require(_value > 0);
         
+        if (value <= 22) {
+            require(fee == 0.1 ether);
+        } else {
+            require(fee == 0.44 ether);
+        }
+
         controller = ProposalController(msg.sender);
         controllerAddress = msg.sender;
-        submiter = _submiter;
+        submitter = _submitter;
         id = now;
         title = _title;
         description = _description;
         videoLink = _videoLink;
         documentsLink = _documentsLink;
-        value = _value * 1 ether;
+        value = _value.mul(1 ether);
         status = Status.curation;
-        activated = false;
-        quorumReached = false;
+
+        //first proposal should be less then 3 ETH
+        //if proposal less then 10k USD => subfee 49 USD
+        //if more then 10k USD => subfee 200 USD
+        //limitation by 1 propo per address
+        //add bool activism or not
+        //if not activism => direct funding
+        //if proposal activism, but curators said its NOT => direct funding
     }
 
     //modifiers
@@ -105,51 +134,60 @@ contract Proposal {
     
     //curators ticks
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal
-    function tick(address _curator, uint _tick) external onlyController checkStatus(Status.curation) {
+    function tick(address _curator, uint8 _tick) external onlyController checkStatus(Status.curation) {
         require(reactions[_curator].flag == false);
         require(reactions[_curator].uptick == false);
         require(reactions[_curator].downtick == false);
-
+        require(curatorContract.limits(_curator, _tick));
+        //get token balance
+        //get category
         if (_tick == 1) {
             reactions[_curator].uptick = true;
         } else if (_tick == 2) {
             reactions[_curator].downtick = true;
         } else if (_tick == 3) {
-            //reputations score over 100
-            //ace balance should be more then ???
             reactions[_curator].flag = true;
-            flagsCount ++;
+            flagsCount.add(1);
             if (flagsCount >= 5) {
                 status = Status.closed;
             }
         } else {
             revert();
         }
-        curators.push(_curator);
-        checkPeriod();
+        
+        reputationExisted[_curator] = true;
+        
+        if (now > curationPeriod) {
+            if (quorumContract.checkQuratorsQuorum(totalUpticks, totalDownticks)) {
+                activated = true;
+                status = Status.voting;
+            } else {
+                activated = false;
+                status = Status.closed;
+            }
+        }
     }
     
     //curators comments
-    function addComment(bytes32 _text) external onlyController checkStatus(Status.curation) {
+    function addComment(address _curator, bytes32 _text) external onlyController checkStatus(Status.curation) {
+        require(curatorContract.limits(_curator, 4));
         require(_text.length > 0);
-        comments[commentsIndex] = Comment(now, msg.sender, _text, 0, 0);
-        commentsIndex ++;
-        checkPeriod();
+        comments[_curator] = Comment(now, _text, 0);
+        reputationExisted[_curator] = true;
     }
     
-    //curators votes for comments
-    //1 == up tick, 2 == down tick
-    function voteForComment(uint _index, uint _vote) external onlyController checkStatus(Status.curation) {
+    //curators upticks for comments
+    //should send 1 to uptick, another values not allowed
+    //request should include address of comment author
+    function uptickComment(address _commentAuthor, address _curator, uint _vote) external onlyController checkStatus(Status.curation) {
+        require(curatorContract.limits(_curator, 5));
         if (_vote == 1) {
-            comments[_index].upticks[msg.sender] ++;
-            comments[_index].totalUpticks ++;
-        } else if (_vote == 2) {
-            comments[_index].downticks[msg.sender] ++;
-            comments[_index].totalDownticks ++;
+            var reputation = curatorContract.getReputation(_curator);
+            comments[_commentAuthor].totalUpticks.add(1);
+            curatorContract.calcEffort(reputation, _commentAuthor);
         } else {
             revert();
         }
-        checkPeriod();
     }
 
     // CITIZEN //
@@ -159,77 +197,83 @@ contract Proposal {
     function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) {
         
         require(voted[_voter] == false);
-        
-        if (now > id + votingPeriod) {
-            status = Status.directFunding;
-            (quorumReached, funds) = quorumContract.check(upVotes, downVotes);
-        }
-        
-        require(voteContract.withdraw(msg.sender, 1));
+        require(voteContract.withdraw(_voter, 1));
         
         if (_vote == 1) {
-            upVotes ++;
+            upVotes.add(1);
         } else if (_vote == 2) {
-            downVotes ++;
+            downVotes.add(1);
             against[_voter] = true;
         } else {
             revert();
         }
         
         voted[_voter] = true;
+
+        if (now > id.add(curationPeriod).add(votingPeriod)) {
+            (quorumReached, funds) = quorumContract.checkCitizenQuorum(upVotes, downVotes);
+            if (funds < value) {
+                status = Status.directFunding;
+            } else {
+                status = Status.closed;
+            }
+        }
     }
 
     //direct funding
     function fundProposal() external payable onlyController checkStatus(Status.directFunding) {
         require(msg.value > 0);
         require(status == Status.directFunding);
-        funds += msg.value;
+        funds = funds.add(msg.value);
 
         if (funds >= value) {
             status = Status.closed;
         }
     }
 
-    function wirthdrawFunds(address _sender) external onlyController checkStatus(Status.closed) {
-        require(_sender == submiter);
-        submiter.transfer(this.balance);
-        //add multisig
+    //submitter funds request
+    function wirthdrawFunds(address _requester) external onlyController checkStatus(Status.closed) {
+        require(withdrawn == false);
+        require(_requester == submitter || _requester == approver);
+        if (_requester == submitter) {
+            require(pendingWithdraw == false);
+            pendingWithdraw = true;
+        }
+        if (_requester == approver) {
+            require(pendingWithdraw == true);
+            withdrawn = true;
+            submitter.transfer(this.balance);
+        }
     }
 
-    //internal functions
-    function sendReputation() internal {
-        for (uint i; i < curators.length; i ++) {
-            curatorContract.calculateReputation(
-                curators[i],
-                activated,
-                quorumReached,
-                reactions[curators[i]].uptick,
-                reactions[curators[i]].downtick,
-                reactions[curators[i]].flag
-            );
-        }
-    }
-    
-    function checkPeriod() internal {
-        if (now > id + curationPeriod) {
-            status = Status.voting;
-        }
-        if (now > id + curationPeriod + votingPeriod) {
-            status = Status.directFunding;
-        }
-        if (now > id + curationPeriod + votingPeriod + directFundingPeriod) {
-            status = Status.closed;
-        }
+    //Should be called by curator
+    function getReputation(address _curator) external onlyController checkStatus(Status.directFunding) {
+        require(reputationExisted[_curator] == true);
+        reputationExisted[_curator] = false;
+        curatorContract.calculatePosotiveReputation(
+            _curator,
+            activated,
+            quorumReached,
+            reactions[_curator].uptick,
+            reactions[_curator].downtick,
+            reactions[_curator].flag
+        );
+        curatorContract.calculateNegativeReputation(
+            _curator,
+            activated,
+            quorumReached,
+            reactions[_curator].uptick,
+            reactions[_curator].downtick,
+            reactions[_curator].flag
+        );
     }
     
     //getters
-    function getComment(uint _index) external view onlyController returns(uint, address, bytes32, uint, uint) {
+    function getComment(address _curator) external view onlyController returns(uint, bytes32, uint) {
         return (
-            comments[_index].timestamp,
-            comments[_index].author,
-            comments[_index].text,
-            comments[_index].totalUpticks,
-            comments[_index].totalDownticks
+            comments[_curator].timestamp,
+            comments[_curator].text,
+            comments[_curator].totalUpticks
         );
     }
 

@@ -6,10 +6,13 @@ contract ProposalController {
     
     //proposals storage
     address[] proposals;
+
+    event NewProposal(address indexed _proposal);
     
     function creatProposal(address _approver, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public returns(Proposal proposal) {
         proposal = new Proposal(msg.sender, _approver, _title, _description, _videoLink, _documentsLink, _value);
         proposals.push(proposal);
+        NewProposal(proposal);
         return proposal;
     }
     
@@ -31,7 +34,7 @@ contract ProposalController {
     }
     
     function addComment(Proposal proposal, bytes32 _text) public {
-        proposal.addComment(_text);
+        proposal.addComment(msg.sender, _text);
     }
     
     function getProposalComment(Proposal proposal, uint _index) public view returns(uint, address, bytes32, uint, uint) {

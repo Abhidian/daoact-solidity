@@ -1,8 +1,9 @@
 {
-    "abi": "[{\"constant\":false,\"inputs\":[{\"name\":\"_upVotes\",\"type\":\"uint256\"},{\"name\":\"_downVotes\",\"type\":\"uint256\"}],\"name\":\"check\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"},{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+    "abi": "[{\"constant\":false,\"inputs\":[{\"name\":\"_upVotes\",\"type\":\"uint256\"},{\"name\":\"_downVotes\",\"type\":\"uint256\"}],\"name\":\"checkCitizenQuorum\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"},{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_upTicks\",\"type\":\"uint256\"},{\"name\":\"_downTicks\",\"type\":\"uint256\"}],\"name\":\"checkQuratorsQuorum\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
     "bytecode": "",
     "functionHashes": {
-        "check(uint256,uint256)": "8fefd8ea"
+        "checkCitizenQuorum(uint256,uint256)": "197690af",
+        "checkQuratorsQuorum(uint256,uint256)": "e098912c"
     },
     "gasEstimates": {
         "creation": {},
