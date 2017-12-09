@@ -1,9 +1,9 @@
 pragma solidity ^0.4.18;
 
 import '../misc/SafeMath.sol';
+import './ProposalController.sol';
 
 //interfaces
-contract ProposalController {}
 contract Quorum { 
     function checkCitizenQuorum(uint _upVotes, uint _downVotes) external returns(bool, uint);
     function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool); 
@@ -11,7 +11,7 @@ contract Quorum {
 contract Vote { 
     function withdraw(address _from, uint256 _value) public returns(bool); 
 }
-contract Curator { 
+contract Curator {
     function calculatePosotiveReputation(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
     function calculateNegativeReputation(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
     function markAsProcessed(address _proposal, address _curator) external;
@@ -36,6 +36,7 @@ contract Proposal {
     
     //curators comment
     struct Comment {
+        address author;
         uint timestamp;
         bytes32 text;
         uint totalUpticks;
@@ -46,8 +47,11 @@ contract Proposal {
         bool uptick;
         bool downtick;
         bool flag;
+        bool notActivism;
     }
     
+    uint private feeMin = 0.1 ether;
+    uint private feeMax = 0.4 ether;
     //proposal fields
     address private controllerAddress; //controller address for modifier
     address private submitter; //address of submitter
@@ -56,7 +60,8 @@ contract Proposal {
     bool private quorumReached; //is quorum rached
     bool private withdrawn; //withdraw indocator
     bool private pendingWithdraw; //indicate that submitter requested withdraw proccess
-    uint8 private flagsCount; //total flags count
+    uint private flagsCount; //total flags count
+    uint private notActivism; //total amount of non activism ticks
     uint32 private curationPeriod = 48 hours;
     uint32 private votingPeriod = 48 hours;
     uint32 private directFundingPeriod = 72 hours;
@@ -70,11 +75,12 @@ contract Proposal {
     bytes32 public documentsLink; //proposal documents url
     uint public value; //proposal requested amount
     uint public funds; //how much funds have beed already funded
+    uint public commentsIndex; //indexes in order to get comments
     uint public upVotes; //total up votes from citizens
     uint public downVotes; //total down votes from citizens
     
     //comments storage
-    mapping(address => Comment) comments;
+    mapping(uint => Comment) comments;
     //agains citizens votes storage to be able to send back vote in case of quorum not reached
     mapping(address => bool) against;
     //citizen voters storage
@@ -84,7 +90,7 @@ contract Proposal {
     //indicate curator action and allow to get reputation
     mapping(address => bool) reputationExisted;
     
-    function Proposal(address _submitter, address _approver, uint fee, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
+    function Proposal(address _submitter, address _approver, bool _activism, uint _fee, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
         require(_submitter != address(0));
         require(_approver != address(0));
         require(_approver != _submitter);
@@ -93,10 +99,14 @@ contract Proposal {
         require(_videoLink.length > 0);
         require(_value > 0);
         
-        if (value <= 22) {
-            require(fee == 0.1 ether);
+        if (_value <= 22) {
+            require(_fee == feeMin);
         } else {
-            require(fee == 0.44 ether);
+            require(_fee == feeMax);
+        }
+
+        if (_activism == false) {
+            status = Status.directFunding;            
         }
 
         controller = ProposalController(msg.sender);
@@ -109,14 +119,6 @@ contract Proposal {
         documentsLink = _documentsLink;
         value = _value.mul(1 ether);
         status = Status.curation;
-
-        //first proposal should be less then 3 ETH
-        //if proposal less then 10k USD => subfee 49 USD
-        //if more then 10k USD => subfee 200 USD
-        //limitation by 1 propo per address
-        //add bool activism or not
-        //if not activism => direct funding
-        //if proposal activism, but curators said its NOT => direct funding
     }
 
     //modifiers
@@ -133,23 +135,28 @@ contract Proposal {
     // CURATORS //
     
     //curators ticks
-    //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal
+    //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == not activism
     function tick(address _curator, uint8 _tick) external onlyController checkStatus(Status.curation) {
         require(reactions[_curator].flag == false);
         require(reactions[_curator].uptick == false);
         require(reactions[_curator].downtick == false);
+        require(reactions[_curator].notActivism == false);
         require(curatorContract.limits(_curator, _tick));
-        //get token balance
-        //get category
         if (_tick == 1) {
             reactions[_curator].uptick = true;
         } else if (_tick == 2) {
             reactions[_curator].downtick = true;
         } else if (_tick == 3) {
             reactions[_curator].flag = true;
-            flagsCount.add(1);
+            flagsCount = flagsCount.add(1);
             if (flagsCount >= 5) {
                 status = Status.closed;
+            }
+        } else if (_tick == 4) {
+            reactions[_curator].notActivism == true;
+            notActivism = notActivism.add(1);
+            if (notActivism >= 5) {
+                status = Status.directFunding;
             }
         } else {
             revert();
@@ -172,18 +179,20 @@ contract Proposal {
     function addComment(address _curator, bytes32 _text) external onlyController checkStatus(Status.curation) {
         require(curatorContract.limits(_curator, 4));
         require(_text.length > 0);
-        comments[_curator] = Comment(now, _text, 0);
+        commentsIndex = commentsIndex.add(1);
+        comments[commentsIndex] = Comment(_curator, now, _text, 0);
         reputationExisted[_curator] = true;
     }
     
     //curators upticks for comments
     //should send 1 to uptick, another values not allowed
     //request should include address of comment author
-    function uptickComment(address _commentAuthor, address _curator, uint _vote) external onlyController checkStatus(Status.curation) {
+    //should save index on middleware during get proccess in order to request exact comment!
+    function uptickComment(uint _index, address _commentAuthor, address _curator, uint _vote) external onlyController checkStatus(Status.curation) {
         require(curatorContract.limits(_curator, 5));
         if (_vote == 1) {
             var reputation = curatorContract.getReputation(_curator);
-            comments[_commentAuthor].totalUpticks.add(1);
+            comments[_index].totalUpticks = comments[_index].totalUpticks.add(1);
             curatorContract.calcEffort(reputation, _commentAuthor);
         } else {
             revert();
@@ -198,17 +207,16 @@ contract Proposal {
         
         require(voted[_voter] == false);
         require(voteContract.withdraw(_voter, 1));
+        voted[_voter] = true;
         
         if (_vote == 1) {
-            upVotes.add(1);
+            upVotes = upVotes.add(1);
         } else if (_vote == 2) {
-            downVotes.add(1);
             against[_voter] = true;
+            downVotes = downVotes.add(1);
         } else {
             revert();
         }
-        
-        voted[_voter] = true;
 
         if (now > id.add(curationPeriod).add(votingPeriod)) {
             (quorumReached, funds) = quorumContract.checkCitizenQuorum(upVotes, downVotes);
@@ -269,11 +277,14 @@ contract Proposal {
     }
     
     //getters
-    function getComment(address _curator) external view onlyController returns(uint, bytes32, uint) {
+
+    //save index of comment on middleware during get proccess!
+    function getComment(uint _index) external view onlyController returns(address, uint, bytes32, uint) {
         return (
-            comments[_curator].timestamp,
-            comments[_curator].text,
-            comments[_curator].totalUpticks
+            comments[_index].author,
+            comments[_index].timestamp,
+            comments[_index].text,
+            comments[_index].totalUpticks
         );
     }
 
