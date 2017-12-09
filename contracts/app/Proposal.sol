@@ -40,6 +40,7 @@ contract Proposal {
         uint timestamp;
         bytes32 text;
         uint totalUpticks;
+        mapping(address => bool) upticked;
     }
     
     //curators reaction
@@ -177,7 +178,7 @@ contract Proposal {
     
     //curators comments
     function addComment(address _curator, bytes32 _text) external onlyController checkStatus(Status.curation) {
-        require(curatorContract.limits(_curator, 4));
+        require(curatorContract.limits(_curator, 5));
         require(_text.length > 0);
         commentsIndex = commentsIndex.add(1);
         comments[commentsIndex] = Comment(_curator, now, _text, 0);
@@ -188,15 +189,13 @@ contract Proposal {
     //should send 1 to uptick, another values not allowed
     //request should include address of comment author
     //should save index on middleware during get proccess in order to request exact comment!
-    function uptickComment(uint _index, address _commentAuthor, address _curator, uint _vote) external onlyController checkStatus(Status.curation) {
-        require(curatorContract.limits(_curator, 5));
-        if (_vote == 1) {
-            var reputation = curatorContract.getReputation(_curator);
-            comments[_index].totalUpticks = comments[_index].totalUpticks.add(1);
-            curatorContract.calcEffort(reputation, _commentAuthor);
-        } else {
-            revert();
-        }
+    function uptickComment(uint _index, address _curator) external onlyController checkStatus(Status.curation) {
+        require(comments[_index].upticked[_curator] == false);
+        require(curatorContract.limits(_curator, 6));
+        comments[_index].upticked[_curator] == true;
+        var reputation = curatorContract.getReputation(_curator);
+        comments[_index].totalUpticks = comments[_index].totalUpticks.add(1);
+        curatorContract.calcEffort(reputation, comments[_index].author);
     }
 
     // CITIZEN //
