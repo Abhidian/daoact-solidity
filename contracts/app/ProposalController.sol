@@ -2,15 +2,30 @@ pragma solidity ^0.4.18;
 
 import './Proposal.sol';
 
+contract Pool {
+    function submitionFunding() external payable returns(bool);
+}
+
 contract ProposalController {
+
+    Pool poolContract;
     
     //proposals storage
     address[] proposals;
 
+    uint private feeMin = 0.1 ether;
+    uint private feeMax = 0.4 ether;
+
     event NewProposal(address indexed _proposal);
     
-    function creatProposal(address _approver, bool _activism, uint _fee, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public returns(Proposal proposal) {
-        proposal = new Proposal(msg.sender, _approver, _activism, _fee,  _title, _description, _videoLink, _documentsLink, _value);
+    function creatProposal(address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
+        if (_value <= 22) {
+            require(msg.value == feeMin);
+        } else {
+            require(msg.value == feeMax);
+        }
+        require(poolContract.submitionFunding.value(msg.value)());
+        proposal = new Proposal(msg.sender, _approver, _activism, msg.value,  _title, _description, _videoLink, _documentsLink, _value);
         proposals.push(proposal);
         NewProposal(proposal);
         return proposal;

@@ -3,14 +3,17 @@ pragma solidity ^0.4.18;
 import '../misc/SafeMath.sol';
 import '../misc/Ownable.sol';
 
-contract Pool { function requestFunds() external returns(bool); }
+contract Pool { function proposalFund(address _proposal, uint _value) external returns(uint); }
 
 contract Quorum is Ownable {
     
     using SafeMath for *;
+
+    Pool poolContract;
     
-    function Quorum() public {
+    function Quorum(address _poolContract) public {
         owner = msg.sender;
+        poolContract = _poolContract;
     }
 
     function checkCitizenQuorum(uint _upVotes, uint _downVotes) pure external returns(bool, uint) {

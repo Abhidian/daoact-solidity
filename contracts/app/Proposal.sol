@@ -12,8 +12,8 @@ contract Vote {
     function withdraw(address _from, uint256 _value) public returns(bool); 
 }
 contract Curator {
-    function calculatePosotiveReputation(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
-    function calculateNegativeReputation(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
+    function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
+    function calcNeg(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
     function markAsProcessed(address _proposal, address _curator) external;
     function limits(address _curator, uint8 _action) external returns(bool);
     function getReputation (address _curator) external view returns(uint);
@@ -50,9 +50,7 @@ contract Proposal {
         bool flag;
         bool notActivism;
     }
-    
-    uint private feeMin = 0.1 ether;
-    uint private feeMax = 0.4 ether;
+
     //proposal fields
     address private controllerAddress; //controller address for modifier
     address private submitter; //address of submitter
@@ -99,12 +97,6 @@ contract Proposal {
         require(_description.length > 0);
         require(_videoLink.length > 0);
         require(_value > 0);
-        
-        if (_value <= 22) {
-            require(_fee == feeMin);
-        } else {
-            require(_fee == feeMax);
-        }
 
         if (_activism == false) {
             status = Status.directFunding;            
@@ -218,7 +210,7 @@ contract Proposal {
         }
 
         if (now > id.add(curationPeriod).add(votingPeriod)) {
-            (quorumReached, funds) = quorumContract.checkCitizenQuorum(upVotes, downVotes);
+            (quorumReached, funds) = quorumContract.checkCitizenQuorum(upVotes, downVotes, this, value);
             if (funds < value) {
                 status = Status.directFunding;
             } else {
@@ -257,7 +249,7 @@ contract Proposal {
     function getReputation(address _curator) external onlyController checkStatus(Status.directFunding) {
         require(reputationExisted[_curator] == true);
         reputationExisted[_curator] = false;
-        curatorContract.calculatePosotiveReputation(
+        curatorContract.calcPos(
             _curator,
             activated,
             quorumReached,
@@ -265,7 +257,7 @@ contract Proposal {
             reactions[_curator].downtick,
             reactions[_curator].flag
         );
-        curatorContract.calculateNegativeReputation(
+        curatorContract.calcNeg(
             _curator,
             activated,
             quorumReached,
