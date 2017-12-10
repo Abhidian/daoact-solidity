@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import '../misc/SafeMath.sol';
+import '../../misc/SafeMath.sol';
 
 contract Curator {
     function getCuratorRewarding(address _curator) public view returns (uint);
@@ -50,19 +50,19 @@ contract Pool {
         var funds = msg.value;
         var funding = funds.mul(80).div(100);
         var rewarding = funds.mul(15).div(100);
-        var foundation = funds.mul(5).div(100);
+        var foundationPart = funds.mul(5).div(100);
 
         fundingPool = fundingPool.add(funding);
         rewardingPool = rewardingPool.add(rewarding);
-        foundationPool = foundationPool.add(foundation);
+        foundationPool = foundationPool.add(foundationPart);
     }
 
     function directFunding() public payable {
         var funds = msg.value;
         var funding = funds.mul(95).div(100);
-        var foundation = funds.mul(5).div(100);
+        var foundationPart = funds.mul(5).div(100);
         fundingPool = fundingPool.add(funding);
-        foundationPool = foundationPool.add(foundation);
+        foundationPool = foundationPool.add(foundationPart);
     }
 
     function submitionFunding() external payable returns(bool) {

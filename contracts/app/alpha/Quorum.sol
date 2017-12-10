@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
-import '../misc/SafeMath.sol';
-import '../misc/Ownable.sol';
+import '../../misc/SafeMath.sol';
+import '../../misc/Ownable.sol';
 
 contract Pool { function proposalFund(address _proposal, uint _value) external returns(uint); }
 

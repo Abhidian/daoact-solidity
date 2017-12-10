@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import '../misc/SafeMath.sol';
+import '../../misc/SafeMath.sol';
 import './ProposalController.sol';
 
 //interfaces
