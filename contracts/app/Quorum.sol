@@ -13,16 +13,17 @@ contract Quorum is Ownable {
     
     function Quorum(address _poolContract) public {
         owner = msg.sender;
-        poolContract = _poolContract;
+        poolContract = Pool(_poolContract);
     }
 
-    function checkCitizenQuorum(uint _upVotes, uint _downVotes) pure external returns(bool, uint) {
+    function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint) {
         var allVotes = _upVotes.add(_downVotes);
         var citizensQuorum = uint(_upVotes).mul(uint(100)).div(uint(allVotes));
         if (citizensQuorum >= 60) {
-
+            var result = poolContract.proposalFund(_proposal, _value);
+            return (true, result);
         } else {
-
+            return (false, 0);
         }
     }
 

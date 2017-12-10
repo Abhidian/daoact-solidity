@@ -5,7 +5,7 @@ import './ProposalController.sol';
 
 //interfaces
 contract Quorum { 
-    function checkCitizenQuorum(uint _upVotes, uint _downVotes) external returns(bool, uint);
+    function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
     function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool); 
 }
 contract Vote { 
