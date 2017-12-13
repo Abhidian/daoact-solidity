@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-contract CE7 {
+contract CE7mock {
 
     mapping (address => uint) balances;
 
@@ -8,7 +8,7 @@ contract CE7 {
         balances[_curator] = _balance;
     }
 
-    function getBalance(address _curator) public view returns (uint){
+    function getBalance(address _curator) public view returns (uint) {
         return balances[_curator];
     }
 

@@ -77,7 +77,7 @@ contract Curator {
 
     //create curator with 0 reputation, 0 rewarding and 1 reputation group. Will be called while curator is registrating on the platform 
     function createCurator() public {
-        var ce7Balance = ce7Token.balanceOf(msg.sender);
+        var ce7Balance = ce7Token.getBalance(msg.sender);
         if (ce7Balance < 1000 ) {
             curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 0, 0, 5, now, 0, 0, 0, 0);
         }
@@ -109,7 +109,7 @@ contract Curator {
     function calcEffort(uint _effort, address _curator) external onlyProposalControler {
         require(curators[_curator].exist == true);
         var (poolRewarding,timestamp) = pool.getTransit();
-        var ce7Balance = ce7Token.balanceOf(_curator);
+        var ce7Balance = ce7Token.getBalance(_curator);
 
         if (now <= timestamp.add(30 days)) {
             if (ce7Balance >= 5 && ce7Balance <= 1999) {
@@ -287,7 +287,7 @@ contract Curator {
     //update curator's limits if 24 hours is passed
     function setLimits(address _curator) internal {
         require(curators[_curator].exist == true);
-        var ce7Balance = ce7Token.balanceOf(_curator);
+        var ce7Balance = ce7Token.getBalance(_curator);
         if (curators[_curator].reputationGroup == 1) {
             curators[_curator].limitLike = 30;
             curators[_curator].limitFlag = 0;
