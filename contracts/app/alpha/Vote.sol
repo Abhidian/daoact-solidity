@@ -28,13 +28,13 @@ contract Vote is Ownable {
     event ACTVoteSpent(address indexed voter,uint256 votes);
     event ACTVoteReturned(address indexed voter,uint256 votes);
     
-    function Vote(address _owner, address _quorumAddr, address _proposalAddr, uint256 _exchangeRate) public {
+    function Vote(address _quorumAddr, address _proposalAddr, uint256 _exchangeRate) public {
         require(_owner != address(0));
         require(_quorumAddr != address(0));
         require(_proposalAddr != address(0));
         require(_exchangeRate > 0);
 
-        owner = _owner;
+        owner = msg.sender;
         quorum = _quorumAddr;
         exchangeRate = _exchangeRate; //exchange should be uint value in 65000 format. 65000 means 650.00 USD.
     }

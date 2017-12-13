@@ -2,6 +2,7 @@ pragma solidity ^0.4.18;
 
 import '../../misc/SafeMath.sol';
 import './ProposalController.sol';
+import '../../misc/Ownable.sol';
 
 //interfaces
 contract Quorum { 
@@ -17,7 +18,7 @@ contract Curator {
     function calcEffort (uint _effort, address _curator) external;
 }
 
-contract Proposal {
+contract Proposal is Ownable {
 
     using SafeMath for *;
     
@@ -87,6 +88,7 @@ contract Proposal {
     mapping(address => bool) reputationExisted;
     
     function Proposal(address _submitter, address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
+        owner = msg.sender;
         require(_submitter != address(0));
         require(_approver != address(0));
         require(_approver != _submitter);

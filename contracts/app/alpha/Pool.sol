@@ -1,12 +1,13 @@
 pragma solidity ^0.4.18;
 
 import '../../misc/SafeMath.sol';
+import '../../misc/Ownable.sol';
 
 contract Curator {
     function getCuratorRewarding(address _curator) public view returns (uint);
 }
 
-contract Pool {
+contract Pool is Ownable{
 
     using SafeMath for *;   
 
@@ -30,6 +31,7 @@ contract Pool {
     Transit private transit;
 
     function Pool(address _proposalController, address _voteContract, address _curatorContract, address _foundation, address _daoact) public {
+        owner = msg.sender;
         require(_proposalController != address(0));
         require(_voteContract != address(0));
         require(_curatorContract != address(0));
