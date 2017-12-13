@@ -2,7 +2,7 @@ pragma solidity ^0.4.18;
 
 import "../../misc/SafeMath.sol";
 
-contract Ce7 { function balanceOf(address _owner) external constant returns (uint256 balance);}
+contract CE7 { function getBalance(address _curator) public view returns (uint);}
 contract ReputationGroupDividing { function getGroupRate (uint _rep) public returns (uint);}
 contract Pool { function getTransit() external returns (uint, uint);}
 
@@ -10,7 +10,7 @@ contract Curator {
 
     using SafeMath for *;
 
-    Ce7 ce7Token;
+    CE7 ce7Token;
     ReputationGroupDividing repGroup;
     Pool pool;
 
@@ -53,7 +53,7 @@ contract Curator {
         require(_ce7Token != address(0));
         require(_repGroup != address(0));
         require(_pool != address(0));        
-        ce7Token = Ce7(_ce7Token);
+        ce7Token = CE7(_ce7Token);
         repGroup = ReputationGroupDividing(_repGroup);
         pool = Pool(_pool);
         proposalController = _proposalController;
