@@ -8,9 +8,6 @@ contract Quorum {
     function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
     function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool); 
 }
-contract Vote { 
-    function withdraw(address _from, uint256 _value) public returns(bool); 
-}
 contract Curator {
     function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
     function calcNeg(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
@@ -194,10 +191,9 @@ contract Proposal {
 
     //citizen votes
     // 1 == vote up, 2 == vote down
-    function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) {
+    function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) returns(bool) {
         
         require(voted[_voter] == false);
-        require(voteContract.withdraw(_voter, 1));
         voted[_voter] = true;
         
         if (_vote == 1) {
@@ -207,6 +203,7 @@ contract Proposal {
             downVotes = downVotes.add(1);
         } else {
             revert();
+            return false;
         }
 
         if (now > id.add(curationPeriod).add(votingPeriod)) {
@@ -217,6 +214,7 @@ contract Proposal {
                 status = Status.closed;
             }
         }
+        return true;
     }
 
     //direct funding

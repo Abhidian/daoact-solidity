@@ -16,11 +16,10 @@ contract ReputationGroup {
     uint reputationRate;
     Curator curator;
 
-    function ReputationGroupDividing (address _curator) public {
-        require(_curator != address(0));
-        curator = Curator(_curator);
+    function setCurator(address _cur)public {
+        require(_cur != address(0));
+        curator = Curator(_cur);
     }
-
 
     function getFullReputation() public returns (uint) {
         fullReputation = curator.getFullReputation();

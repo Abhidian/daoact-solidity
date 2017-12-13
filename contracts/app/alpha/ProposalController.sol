@@ -1,22 +1,32 @@
 pragma solidity ^0.4.18;
 
 import './Proposal.sol';
+import '../../misc/Ownable.sol';
 
 contract Pool {
     function submitionFunding() external payable returns(bool);
 }
 
-contract ProposalController {
+contract Vote {
+    function withdraw(address _from) external returns(bool);
+}
+
+contract ProposalController is Ownable {
 
     Pool poolContract;
+    Vote voteContract;
     
     //proposals storage
     address[] proposals;
-
+    
     uint private feeMin = 0.1 ether;
     uint private feeMax = 0.4 ether;
 
     event NewProposal(address indexed _proposal);
+
+    function ProposalController() public {
+        owner = msg.sender;
+    }
     
     function creatProposal(address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
         if (_value <= 22) {
@@ -29,6 +39,10 @@ contract ProposalController {
         proposals.push(proposal);
         NewProposal(proposal);
         return proposal;
+    }
+
+    function setVoteContractAddress(address _address) public onlyOwner {
+        voteContract = Vote(_address);
     }
 
     //tick proposal by curator
@@ -50,7 +64,8 @@ contract ProposalController {
     //citizen vote
     //1 == vote up, 2 == vote down
     function citizenVote(Proposal proposal, uint _vote) public {
-        proposal.vote(msg.sender, _vote);
+        require(proposal.vote(msg.sender, _vote));
+        require(voteContract.withdraw(msg.sender));
     }
 
     //proposal direct funding

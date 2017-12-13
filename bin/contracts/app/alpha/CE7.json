@@ -1,0 +1,20 @@
+{
+    "abi": "[{\"constant\":false,\"inputs\":[{\"name\":\"_curator\",\"type\":\"address\"},{\"name\":\"_balance\",\"type\":\"uint256\"}],\"name\":\"setBalance\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_curator\",\"type\":\"address\"}],\"name\":\"getBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]",
+    "bytecode": "6060604052341561000f57600080fd5b61013c8061001e6000396000f30060606040526004361061004b5763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663e30443bc8114610050578063f8b2cb4f14610081575b600080fd5b341561005b57600080fd5b61007f73ffffffffffffffffffffffffffffffffffffffff600435166024356100bf565b005b341561008c57600080fd5b6100ad73ffffffffffffffffffffffffffffffffffffffff600435166100e8565b60405190815260200160405180910390f35b73ffffffffffffffffffffffffffffffffffffffff909116600090815260208190526040902055565b73ffffffffffffffffffffffffffffffffffffffff16600090815260208190526040902054905600a165627a7a72305820c15bedad06ef0feb0aebdf05a0b8b4faa6b39d8ea0bd08584d8732c9ee44428a0029",
+    "functionHashes": {
+        "getBalance(address)": "f8b2cb4f",
+        "setBalance(address,uint256)": "e30443bc"
+    },
+    "gasEstimates": {
+        "creation": [
+            106,
+            63200
+        ],
+        "external": {
+            "getBalance(address)": 482,
+            "setBalance(address,uint256)": 20227
+        },
+        "internal": {}
+    },
+    "runtimeBytecode": "60606040526004361061004b5763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663e30443bc8114610050578063f8b2cb4f14610081575b600080fd5b341561005b57600080fd5b61007f73ffffffffffffffffffffffffffffffffffffffff600435166024356100bf565b005b341561008c57600080fd5b6100ad73ffffffffffffffffffffffffffffffffffffffff600435166100e8565b60405190815260200160405180910390f35b73ffffffffffffffffffffffffffffffffffffffff909116600090815260208190526040902055565b73ffffffffffffffffffffffffffffffffffffffff16600090815260208190526040902054905600a165627a7a72305820c15bedad06ef0feb0aebdf05a0b8b4faa6b39d8ea0bd08584d8732c9ee44428a0029"
+}

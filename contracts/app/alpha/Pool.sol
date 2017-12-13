@@ -10,12 +10,11 @@ contract Pool {
 
     using SafeMath for *;   
 
-    Curator curatorsContract; 
+    Curator curatorContract; 
 
     address private proposalController;
     address private quorumContract;
     address private voteContract;
-    address private curatorContract;
     address private foundation;
     address private daoact;
     uint private fundingPool;
@@ -30,19 +29,22 @@ contract Pool {
 
     Transit private transit;
 
-    function Pool(address _proposalController, address _voteContract, address _curatorContract, address _foundation, address _quorumContract, address _daoact, address _curatorsContract) public {
+    function Pool(address _proposalController, address _voteContract, address _curatorContract, address _foundation, address _daoact) public {
         require(_proposalController != address(0));
         require(_voteContract != address(0));
         require(_curatorContract != address(0));
         proposalController = _proposalController;
         voteContract = _voteContract;
-        curatorContract = _curatorContract;
-        quorumContract = _quorumContract;
         foundation = _foundation;
         daoact = _daoact;
         timestamp = now;
 
-        curatorsContract = Curator(_curatorsContract);
+        curatorContract = Curator(_curatorContract);
+    }
+    ///??????????? address limitation ??????????????????
+    function setQuorumContractAddress(address _quorum) {
+        require(_quorum != address(0));
+        quorumContract = _quorum;
     }
 
     function votesFunding() external payable {
@@ -87,7 +89,7 @@ contract Pool {
     //withdrawals
     function curatorReward() public {
         require(now > timestamp.add(30 days));
-        var rewarding = curatorsContract.getCuratorRewarding(msg.sender);
+        var rewarding = curatorContract.getCuratorRewarding(msg.sender);
         rewardingPool = rewardingPool.sub(rewarding);
         msg.sender.transfer(rewarding);
     }
