@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var ACTToken = artifacts.require("./ACTToken.sol");
+var ACTToken = artifacts.require("./CE7.sol");
 var GenericToken = artifacts.require("./GenericToken.sol");
 var BigNumber = web3.BigNumber;
 var chai_1 = require("chai");
