@@ -89,7 +89,7 @@ contract Proposal {
     //indicate curator action and allow to get reputation
     mapping(address => bool) reputationExisted;
     
-    function Proposal(address _submitter, address _approver, bool _activism, uint _fee, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
+    function Proposal(address _submitter, address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
         require(_submitter != address(0));
         require(_approver != address(0));
         require(_approver != _submitter);

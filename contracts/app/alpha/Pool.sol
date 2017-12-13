@@ -80,7 +80,7 @@ contract Pool {
             timestamp = now;
             transit.timestamp = now;
             transit.balance = rewardingPool;
-            return (transit.balance, transit.timestamp); 
+            return (transit.balance, transit.timestamp);
         }
     }
 

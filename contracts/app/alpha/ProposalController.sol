@@ -25,7 +25,7 @@ contract ProposalController {
             require(msg.value == feeMax);
         }
         require(poolContract.submitionFunding.value(msg.value)());
-        proposal = new Proposal(msg.sender, _approver, _activism, msg.value,  _title, _description, _videoLink, _documentsLink, _value);
+        proposal = new Proposal(msg.sender, _approver, _activism, _title, _description, _videoLink, _documentsLink, _value);
         proposals.push(proposal);
         NewProposal(proposal);
         return proposal;
