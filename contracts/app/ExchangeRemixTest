@@ -1,0 +1,430 @@
+pragma solidity ^0.4.13;
+
+// import "Action.sol";
+// import "Actions.sol";
+
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
+ */
+library SafeMath {
+  function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
+
+  function div(uint256 a, uint256 b) internal constant returns (uint256) {
+    // assert(b > 0); // Solidity automatically throws when dividing by 0
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return c;
+  }
+
+  function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
+
+  function add(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
+
+contract ACTION{
+  using SafeMath for uint256;
+  address private owner;
+
+  string tokenname = "ACTION Token";
+  string symbol = "ACTION";
+  
+  string public contactInformation;
+
+  address private exchangeContract;
+
+  event ExchangeAddrUpdate(address indexed oldAddress, address indexed newAddress);
+
+  mapping(address => uint256) private balances; // Contains action token balance of user
+  
+//   function ACTION(address _owner,address _exchange){
+  function ACTION(){
+      // TODO: parameter validating conditions
+      owner = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
+      exchangeContract = 0xd53ffe9d4585b641b997e327d928eb2a6e1c5f55;
+  }
+
+  function balanceOf(address _owner) constant returns (uint256) {
+    return balances[_owner];
+  }
+  
+    function getOwner() constant external returns(address){
+        return owner;
+    }
+  
+    function exchnage() constant external returns (address){
+        return exchangeContract;
+    }
+    
+    function updateExchangeAddress(address _newAddress) external onlyOwner returns (bool){
+        require(_newAddress != 0x00);
+        // Event may be broadcasted even in case of failure
+        ExchangeAddrUpdate(exchangeContract,_newAddress); 
+        exchangeContract = _newAddress;
+        return Exchange(exchangeContract).isContract();
+    }
+    
+    /**
+     * @dev Allows the owner to set a string with their contact information.
+     * @param info The contact information to attach to the contract.
+     */
+    function setContactInformation(string info) onlyOwner{
+         contactInformation = info;
+    }
+    
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) onlyOwner {
+        require(newOwner != address(0));      
+        owner = newOwner;
+    }
+    
+    
+    function deposit(address _to,uint256 _value) external onlyExchnage returns(bool){
+        require(_to != 0x00);
+        require(_value != 0);
+        balances[_to] = balances[_to].add(_value);
+        return true;
+    }
+    
+    function withdraw(address _from,uint256 _value) external onlyExchnage returns(bool){
+        require(_from != 0x00);
+        require(_value != 0);
+        require(balances[_from] >= _value);
+        balances[_from] = balances[_from].sub(_value);
+        return true;
+    }
+    
+    function () payable {
+        revert();
+    }
+    
+    function isContract() external returns(bool){
+        return true;
+    }
+    
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+    
+    modifier onlyExchnage() {
+        require(msg.sender == exchangeContract);
+        _;
+    }
+}
+
+contract ACTToken  {
+  using SafeMath for uint256;
+  
+  address private owner;
+
+  string tokenname = "ACT Token";
+  string symbol = "ACT";
+  uint256 decimals = 18;
+  uint256 totalSupply;
+  string public contactInformation;
+
+  uint256 private vested = 0;
+  
+  address private exchangeContract;
+  
+  mapping(address => uint256) balances;
+  
+  mapping (address => mapping (address => uint256)) allowed;
+  
+  event Transfer(address indexed from, address indexed to, uint256 value);
+  event Approval(address indexed owner, address indexed spender, uint256 value);
+  event ExchangeAddrUpdate(address indexed oldAddress, address indexed newAddress);
+  event OwnershipTransfer(address indexed oldOnwer, address indexed newOwner);
+
+//   function ACTToken(address _owner,address _exchange,uint256 _totalSupply,uint256 _buyRate,uint256 _sellRate)
+  function ACTToken(){
+      // TODO: parameter validating conditions
+      owner = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
+      exchangeContract = 0xd53ffe9d4585b641b997e327d928eb2a6e1c5f55;
+      totalSupply = 1000000*10**decimals;
+      balances[owner] = totalSupply;
+  }
+
+
+  function transfer(address _to, uint256 _value) returns (bool) {
+    balances[msg.sender] = balances[msg.sender].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    Transfer(msg.sender, _to, _value);
+    return true;
+  }
+
+  function transferFrom(address _from, address _to, uint256 _value) returns (bool) {
+    require(allowed[_from][msg.sender] >= _value);
+    balances[_to] = balances[_to].add(_value);
+    balances[_from] = balances[_from].sub(_value);
+    allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+    Transfer(_from, _to, _value);
+    return true;
+  }
+
+  function approve(address _spender, uint256 _value) returns (bool) {
+
+    // To change the approve amount you first have to reduce the addresses`
+    //  allowance to zero by calling `approve(_spender, 0)` if it is not
+    //  already 0 to mitigate the race condition described here:
+    //  https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+    require((_value == 0) || (allowed[msg.sender][_spender] == 0));
+
+    allowed[msg.sender][_spender] = _value;
+    Approval(msg.sender, _spender, _value);
+    return true;
+  }
+
+    function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
+        return allowed[_owner][_spender];
+    }
+  
+    
+    function balanceOf(address _owner) constant returns (uint256) {
+        return balances[_owner];
+    }
+  
+    function getOwner() constant external returns(address){
+        return owner;
+    }
+    
+    function totalVested() constant  external returns(uint256){
+        return vested; 
+    }
+    
+    function exchange() constant external returns (address){
+        return exchangeContract;
+    }
+  
+    function updateExchangeAddress(address _newAddress) external onlyOwner returns (bool){
+        require(_newAddress != 0x00);
+        // Event may be broadcasted even in case of failure
+        ExchangeAddrUpdate(exchangeContract,_newAddress); 
+        exchangeContract = _newAddress;
+        return Exchange(exchangeContract).isContract();
+    }
+   
+    function withdrawEth(address _to) onlyOwner {
+        _to.transfer(this.balance);
+    }
+    
+    function setContactInformation(string info) onlyOwner{
+         contactInformation = info;
+    }
+    
+    function transferOwnership(address _newOwner) external onlyOwner returns(bool){
+        // Todo: validate params
+        if(!transfer(_newOwner,balances[owner])){
+            revert();
+        }
+        OwnershipTransfer(owner, _newOwner);
+        owner = _newOwner;
+        return true;
+    }
+    
+    function deposit(address _to,uint256 _value) external onlyExchnage returns(bool){
+        require(_to != 0x00);
+        require(_value != 0);
+        balances[_to] = balances[_to].add(_value);
+        vested = vested.sub(_value);
+        return true;
+    }
+    
+    function withdraw(address _from,uint256 _value) external onlyExchnage returns(bool){
+        require(_from != 0x00);
+        require(_value != 0);
+        require(balances[_from] >= _value);
+        balances[_from] = balances[_from].sub(_value);
+        vested = vested.add(_value);
+        return true;
+    }
+    
+    function isContract() constant external returns(bool){
+        return true;
+    }
+    
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+      require(msg.sender == owner);
+        _;
+    }
+
+    modifier onlyExchnage() {
+        require(msg.sender == exchangeContract);
+        _;
+    }
+}
+
+contract Exchange{
+    using SafeMath for uint256;
+
+    address private owner;
+
+    ACTToken private actToken;
+    
+    ACTION private actionToken;
+    
+    uint256 constant public exchangeRate = 10;  // ExchangeRate cannot be changed
+    
+    // Duration will be in months 
+    uint256 public vestingDuration = 5;
+    
+    mapping(address => mapping(uint256 => bytes32)) vestings;
+    
+    event Vested(address indexed vester,uint256 indexed vestId,uint256 total,uint256 balance,bytes32 hash); 
+    
+    event OwnershipTransfer(address indexed oldOnwer, address indexed newOwner);
+  
+    function Exchange(){
+        //Todo: Parameter validation
+        owner = 0xca35b7d915458ef540ade6068dfe2f44e8fa733c;
+    }
+    
+    function getOwner() constant external returns(address){
+        return owner;
+    }
+    
+    function actContract() constant external returns(address){
+        return actToken;
+    } 
+    
+    function actionContract() constant external returns(address){
+        return actionToken;
+    } 
+    
+    function vestPeriod() constant external returns(uint256){
+        return vestingDuration;
+    }
+     
+    function transferOwnership(address _newOwner) external onlyOwner returns(bool){
+        // Todo: validate params
+        OwnershipTransfer(owner, _newOwner);
+        owner = _newOwner;
+        return true;
+    }
+    
+    function updateActAddress(address _newAddress) external onlyOwner returns(bool){
+        //Todo: Parameter validation
+        actToken = ACTToken(_newAddress);
+        return actToken.isContract();
+    }
+    
+    function updateActionAddress(address _newAddress) external onlyOwner returns(bool){
+        //Todo: Parameter validation
+        actionToken = ACTION(_newAddress);
+        return actionToken.isContract();
+    }
+    
+    function updateVestDuration(uint256 _value) external onlyOwner returns(bool){
+        vestingDuration = _value;
+        return true;
+    }
+    
+    function verifyVesting(uint256 id) constant external returns(bytes32){
+        return vestings[msg.sender][id];
+    }
+    
+    function vestACT(uint256 _actTokens) external returns(bool) {
+        require(actToken.isContract());
+        require(actionToken.isContract());
+        require(actToken.balanceOf(msg.sender) >= _actTokens);
+        
+        uint256 actions = _actTokens.mul(exchangeRate);
+        
+        if(!actToken.withdraw(msg.sender,_actTokens)){
+           revert(); 
+        }
+        if(!actionToken.deposit(msg.sender,actions)){
+            revert();
+        }
+        
+        uint256 id = now;
+        bytes32 hash = sha3(msg.sender,id,actions,actions);
+        vestings[msg.sender][id] = hash;
+        Vested(msg.sender,id,actions,actions,hash);
+        Test("id",id);
+        Test("actions",actions);
+        Test2("hash",hash);
+        return true;
+    }
+    
+    event Test(string stage,uint256 value);
+    event Test2(string stage,bytes32 value);
+    function releaseACT(uint256 _id,uint256 _total,uint256 balance,bytes32 _hash,uint256 release,uint256 testValue,uint256 limit) external returns(bool){
+        require(actionToken.isContract());
+        require(actionToken.balanceOf(msg.sender) >= balance);
+        require(vestings[msg.sender][_id] == _hash);
+        require(sha3(msg.sender,_id,_total,balance) == _hash);
+        require(balance >= release);
+        
+        uint256 allowed = allowance(_id,_total,balance,testValue);
+        Test("4 complete",allowed);
+        
+        if(limit == 0){
+            return true;
+        }
+        
+        require(allowed >= release);
+
+        bytes32 hash = sha3(msg.sender,_id,_total,balance.sub(release));
+        Test("5 complete",0);
+        vestings[msg.sender][_id] = hash;
+        if(!actionToken.withdraw(msg.sender,release)){
+            revert();
+        }
+        Test("6 complete",0);
+        if(limit == 1){
+            return true;
+        }
+        if(!actToken.deposit(msg.sender,release/exchangeRate)){
+            revert();
+        }
+        Vested(msg.sender,_id,_total,balance.sub(release),hash);
+        Test("id",_id);
+        Test("actions",balance.sub(release));
+        Test2("hash",hash);
+        return true;
+    }
+    
+    function allowance(uint256 _id,uint256 _total,uint256 _balance,uint256 testValue)internal returns(uint256){
+         if (now > _id + (vestingDuration * 30 days)){
+             return _balance;
+        }
+        uint256 test =  now + (testValue * 1 days);
+        uint256 age = test.sub(_id)/30 days;
+        return _total.div(vestingDuration)*age;
+    }
+    
+    function isContract() constant external returns(bool){
+        return true;
+    }
+ 
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+       require(msg.sender == owner);
+        _;
+    }
+
+}

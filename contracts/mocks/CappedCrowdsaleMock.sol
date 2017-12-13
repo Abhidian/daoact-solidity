@@ -1,8 +1,6 @@
 pragma solidity 0.4.18;
 
-
 import '../ico/CappedCrowdsale.sol';
-
 
 contract CappedCrowdsaleMock is CappedCrowdsale {
 

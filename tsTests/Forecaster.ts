@@ -33,26 +33,27 @@ contract("ForecasterReward", (accounts) =>
 {
     describe("Initialization", async()=>
     {
-        before(async()=>
-        {
+        it("Should init correctly ", async()=>
+        {     
+            // Long story short - we need a way to reset testrpc after each test 
+            // because of funds and time traverses
+            await mineBlocks();
+
             owner = accounts[0];
-            startTime = lastBlockTimeInSec() + startTimeOffset;
+            startTime = await lastBlockTimeInSec() + startTimeOffset;
             endTime = startTime + endTimeOffset;
             forecaster = accounts[1];
             preICO = accounts[2];
             investor0 = accounts[3];
             investor1 = accounts[4];
-        });
 
-        it("Should init correctly ", async()=>
-        {     
             fr = await ForecasterReward.new
                 (owner, 
                 startTime, 
                 endTime,
                 forecaster, 
                 preICO);
-
+  
             expect(await fr.owner(), "Owner incorrect/not set").to.equal(owner);
             expect(await fr.forecastersAddress(), "Forecasters incorrect/not set").to.equal(forecaster);
             expect(await fr.preICOAddress(), "PreICO incorrect/not set").to.equal(preICO);
