@@ -1,10 +1,11 @@
 pragma solidity ^0.4.18;
 
 import "../../misc/SafeMath.sol";
+import '../../misc/Ownable.sol';
 
 contract Curator { function getFullReputation () view public returns (uint);}
 
-contract ReputationGroup {
+contract ReputationGroup is Ownable {
     
     using SafeMath for uint;
        
@@ -17,6 +18,7 @@ contract ReputationGroup {
     Curator curator;
 
     function setCurator(address _cur)public {
+        owner = msg.sender;
         require(_cur != address(0));
         curator = Curator(_cur);
     }

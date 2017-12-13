@@ -1,8 +1,14 @@
 pragma solidity ^0.4.18;
 
-contract CE7mock {
+import '../../misc/Ownable.sol';
+
+contract CE7mock is Ownable {
 
     mapping (address => uint) balances;
+
+    function CE7mock() {
+        owner = msg.sender;
+    }
 
     function setBalance(address _curator, uint _balance) public {
         balances[_curator] = _balance;

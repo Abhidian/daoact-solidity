@@ -1,12 +1,13 @@
 pragma solidity ^0.4.18;
 
 import "../../misc/SafeMath.sol";
+import '../../misc/Ownable.sol';
 
 contract CE7 { function getBalance(address _curator) public view returns (uint);}
 contract ReputationGroupDividing { function getGroupRate (uint _rep) public returns (uint);}
 contract Pool { function getTransit() external returns (uint, uint);}
 
-contract Curator {
+contract Curator is Ownable {
 
     using SafeMath for *;
 
@@ -49,6 +50,7 @@ contract Curator {
     address private proposalController;
 
     function Curator(address _proposalController, address _ce7Token, address _repGroup, address _pool) public {
+        owner = msg.sender;
         require(_proposalController != address(0));
         require(_ce7Token != address(0));
         require(_repGroup != address(0));
