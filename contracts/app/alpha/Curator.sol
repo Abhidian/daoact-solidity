@@ -49,7 +49,7 @@ contract Curator {
     address private proposalController;
 
     function Curator(address _proposalController, address _ce7Token, address _repGroup, address _pool) public {
-        require(proposalController != address(0));
+        require(_proposalController != address(0));
         require(_ce7Token != address(0));
         require(_repGroup != address(0));
         require(_pool != address(0));        
