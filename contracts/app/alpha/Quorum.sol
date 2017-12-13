@@ -11,9 +11,12 @@ contract Quorum is Ownable {
 
     Pool poolContract;
     
-    function Quorum(address _poolContract) public {
+    function Quorum() public {
         owner = msg.sender;
-        poolContract = Pool(_poolContract);
+    }
+
+    function setPoolContractAddress(address _address) public onlyOwner {
+        poolContract = Pool(_address);
     }
 
     function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint) {
