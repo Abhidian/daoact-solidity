@@ -17,10 +17,13 @@ contract ReputationGroup is Ownable {
     uint reputationRate;
     Curator curator;
 
-    function setCurator(address _cur)public {
+    function ReputationGroup() public {
         owner = msg.sender;
-        require(_cur != address(0));
-        curator = Curator(_cur);
+    }
+
+    function setCuratorContractAddress(address _address) public {
+        require(_address != address(0));
+        curator = Curator(_address);
     }
 
     function getFullReputation() public returns (uint) {

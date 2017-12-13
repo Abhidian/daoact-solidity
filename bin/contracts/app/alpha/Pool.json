@@ -1,8 +1,8 @@
 {
-    "abi": "[{\"constant\":false,\"inputs\":[],\"name\":\"submitionFunding\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+    "abi": "[{\"constant\":false,\"inputs\":[],\"name\":\"votesFunding\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"}]",
     "bytecode": "",
     "functionHashes": {
-        "submitionFunding()": "4effa16c"
+        "votesFunding()": "9a236c4c"
     },
     "gasEstimates": {
         "creation": {},

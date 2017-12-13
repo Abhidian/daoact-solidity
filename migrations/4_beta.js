@@ -9,6 +9,9 @@ var Vote = artifacts.require('./Vote.sol');
 //migrate -f 4 to run only this migration
 module.exports = function(deployer) {
 
+    var foundationAddress = 0x01;
+    var daoactLTDAddress = 0x01;
+
     CE7mock.new().then(function(ce7Contract) {
         console.log('CE7 contract address: ', ce7Contract.address);
 
@@ -20,6 +23,25 @@ module.exports = function(deployer) {
                 //SET pool contract address MANUALY!
                 console.log('Quorum contract address: ', quorumContract.address);
 
+                ReputationGroup.new().then(function(reputationContract) {
+                    //SET Curator contract address MANUALY!
+                    console.log('Reputation contract address: ', reputationContract.address);
+
+                    Vote.new(quorumContract.address, proposalController.address, 65000).then(function(voteContract) {
+                        //last argument is ETH price in USD, multiplied by 100. It should be uint value!
+                        console.log('Vote contract address: ', voteContract.address);
+
+                        Pool.new(proposalController.address, voteContract.address, quorumContract.address, foundationAddress, daoactLTDAddress). then(function(poolContract) {
+                            //SET Curator contract address MANUALY!
+                            console.log('Pool contract address: ', poolContract.address);
+
+                            Curator.new(proposalController.address, ce7Contract.address, reputationContract.address, poolContract.address).then(function(curatorContract) {
+                                console.log('Curator contract address: ', curatorContract.address);
+                                console.log('ALL CONTRACT DEPLOYED! Set required addresses!');
+                            });
+                        });
+                    });
+                });
             });
         });
 

@@ -30,23 +30,22 @@ contract Pool is Ownable{
 
     Transit private transit;
 
-    function Pool(address _proposalController, address _voteContract, address _curatorContract, address _foundation, address _daoact) public {
-        owner = msg.sender;
+    function Pool(address _proposalController, address _voteContract, address _quorumContract, address _foundation, address _daoact) public {
         require(_proposalController != address(0));
         require(_voteContract != address(0));
-        require(_curatorContract != address(0));
+        require(_quorumContract != address(0));
+        owner = msg.sender;
         proposalController = _proposalController;
+        quorumContract = _quorumContract;
         voteContract = _voteContract;
         foundation = _foundation;
         daoact = _daoact;
         timestamp = now;
-
-        curatorContract = Curator(_curatorContract);
     }
-    ///??????????? address limitation ??????????????????
-    function setQuorumContractAddress(address _quorum) {
-        require(_quorum != address(0));
-        quorumContract = _quorum;
+
+    function setCuratorContractAddress(address _address) public onlyOwner {
+        require(_address != address(0));
+        curatorContract = Curator(_address);
     }
 
     function votesFunding() external payable {

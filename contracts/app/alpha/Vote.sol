@@ -11,7 +11,7 @@ contract Vote is Ownable {
     
     using SafeMath for uint256;
     
-    address public quorum;
+    address public quorumContract;
     address public proposalController;
     
     // sum of all funds that were used to buy ACT_VOTE tokens
@@ -28,14 +28,14 @@ contract Vote is Ownable {
     event ACTVoteSpent(address indexed voter,uint256 votes);
     event ACTVoteReturned(address indexed voter,uint256 votes);
     
-    function Vote(address _quorumAddr, address _proposalAddr, uint256 _exchangeRate) public {
-        require(_owner != address(0));
-        require(_quorumAddr != address(0));
-        require(_proposalAddr != address(0));
+    function Vote(address _quorumContractAddres, address _proposalController, uint256 _exchangeRate) public {
+        require(_quorumContractAddres != address(0));
+        require(_proposalController != address(0));
         require(_exchangeRate > 0);
 
         owner = msg.sender;
-        quorum = _quorumAddr;
+        quorumContract = _quorumContractAddres;
+        proposalController = _proposalController;
         exchangeRate = _exchangeRate; //exchange should be uint value in 65000 format. 65000 means 650.00 USD.
     }
     
@@ -66,7 +66,7 @@ contract Vote is Ownable {
         
         balances[msg.sender] = balances[msg.sender].add(votes); 
         fundsGiven = fundsGiven.add(msg.value);
-        if (quorum.send(msg.value)) {
+        if (quorumContract.send(msg.value)) {
             ACTVotePurchase(msg.sender,msg.value,votes);
         } else {
             revert();
@@ -104,8 +104,8 @@ contract Vote is Ownable {
      * @param _newAddress updated contract address 
      * @return true if successful
      */
-    function updateQuorumAddress(address _newAddress) external onlyOwner returns (bool) {
-        quorum = _newAddress;
+    function updateQuorumContractAddress(address _newAddress) external onlyOwner returns (bool) {
+        quorumContract = _newAddress;
         return true;
     }
     
