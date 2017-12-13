@@ -11,6 +11,7 @@ gen
 #
 node_modules/*
 build/*
+test
 
 #Lets ignore tests folders because it's generated code by transpiling typescript tests in tsTests folder
 test/*

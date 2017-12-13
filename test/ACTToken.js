@@ -45,10 +45,10 @@ var actToken = null; // ActToken instance
 var gt = null; // Generic Token instance
 var hardOwner = "0x1538ef80213cde339a333ee420a85c21905b1b2d";
 var hardSupplyOwner = "0x244092a2FECFC48259cf810b63BA3B3c0B811DCe";
-var name = "ACT Token";
-var symbol = "ACT";
-var decimals = 18;
-var supply = 10e9 * 1e18; // 10 Billions + 18 decimals or 100 Octilions
+var name = "Curation Engine 7";
+var symbol = "CE7";
+var decimals = 4;
+var supply = 10e6 * 1e4; // 10 Millions + 4 decimals
 var version = "v1.0.0";
 function ReturnEventAndArgs(returnVal) {
     return { eventName: returnVal.logs[0].event,
