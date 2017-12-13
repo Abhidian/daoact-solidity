@@ -4,7 +4,7 @@ import "../../misc/SafeMath.sol";
 
 contract Curator { function getFullReputation () view public returns (uint);}
 
-contract ReputationGroupDividing {
+contract ReputationGroup {
     
     using SafeMath for uint;
        
@@ -16,13 +16,13 @@ contract ReputationGroupDividing {
     uint reputationRate;
     Curator curator;
 
-    function ReputationGroupDividing (address _curator) {
+    function ReputationGroupDividing (address _curator) public {
         require(_curator != address(0));
         curator = Curator(_curator);
     }
 
 
-    function getFullReputation() public view returns (uint) {
+    function getFullReputation() public returns (uint) {
         fullReputation = curator.getFullReputation();
         return fullReputation;
     }
