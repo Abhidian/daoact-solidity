@@ -1,8 +1,8 @@
 # daoact-solidity
 
-To deploy linked contracts in app\alpha run:
+To deploy linked contracts in app\prototype run:
 ```
-truffle exec migrations\DeployAlphaApp.js --network ropsten
+truffle exec migrations\3_prototype3_prototype.js --network ropsten
 ```
 
 To run tests:
