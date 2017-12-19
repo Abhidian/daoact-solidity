@@ -25,7 +25,6 @@ contract Proposal is Ownable {
     //system addresses variables
     ProposalController controller;
     Quorum quorumContract;
-    Vote voteContract;
     Curator curatorContract;
 
     //proposal status
@@ -178,7 +177,7 @@ contract Proposal is Ownable {
     
     //curators upticks for comments
     //should send 1 to uptick, another values not allowed
-    //request should include address of comment author
+    //request should include index of comment
     //should save index on middleware during get proccess in order to request exact comment!
     function uptickComment(uint _index, address _curator) external onlyController checkStatus(Status.curation) {
         require(comments[_index].upticked[_curator] == false);

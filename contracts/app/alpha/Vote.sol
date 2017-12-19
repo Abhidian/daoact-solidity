@@ -30,7 +30,7 @@ contract Quorum is Ownable {
         }
     }
 
-    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool) {
+    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external pure returns(bool) {
         var allTicks = _upTicks.add(_downTicks);
         var curatorsQuorum = uint(_upTicks).mul(uint(100)).div(uint(allTicks));
         if (curatorsQuorum >= 70) {
