@@ -41,7 +41,7 @@ contract Vote is Ownable {
         _;
     }
 
-    function setQuorumAddress (address _quorumAddr) public {
+    function setQuorumAddress (address _quorumAddr) public onlyOwner {
         require(_quorumAddr != address(0));
         quorum = _quorumAddr;
     }

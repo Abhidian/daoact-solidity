@@ -1,11 +1,11 @@
 /**
- *  ACTToken.sol v1.0.0
+ *  CE7.sol v1.0.0
  * 
  *  Bilal Arif - https://twitter.com/furusiyya_
  *  Draglet GbmH
  */
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.18;
 
 import '../misc/SafeMath.sol';
 import '../misc/Pausable.sol';
@@ -28,9 +28,9 @@ contract ACTToken is Pausable, ReentrancyGuard {
   event Approval(address indexed owner, address indexed spender, uint256 value);
   event Transfer(address indexed from, address indexed to, uint256 value);
 
-  function ACTToken(address setOwner, address setTokenOwner) public {
-    owner = setOwner;
-    balances[setTokenOwner] = supply;
+  function ACTToken() public {
+    owner = msg.sender;
+    balances[msg.sender] = supply;
   }
 
 
