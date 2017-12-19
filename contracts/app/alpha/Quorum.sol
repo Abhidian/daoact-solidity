@@ -6,17 +6,17 @@ import '../../misc/Ownable.sol';
 contract Pool { function proposalFund(address _proposal, uint _value) external returns(uint); }
 
 contract Quorum is Ownable {
-    
+
     using SafeMath for *;
 
     Pool poolContract;
-    
+
     function Quorum() public {
         owner = msg.sender;
     }
 
-    function setPoolContractAddress(address _address) public onlyOwner {
-        poolContract = Pool(_address);
+    function setPoolAddress (address _poolContract) public {
+        poolContract = Pool(_poolContract);
     }
 
     function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint) {
@@ -30,7 +30,7 @@ contract Quorum is Ownable {
         }
     }
 
-    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) pure external returns(bool) {
+    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool) {
         var allTicks = _upTicks.add(_downTicks);
         var curatorsQuorum = uint(_upTicks).mul(uint(100)).div(uint(allTicks));
         if (curatorsQuorum >= 70) {

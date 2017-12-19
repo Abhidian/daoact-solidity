@@ -18,13 +18,13 @@ contract ProposalController is Ownable {
     
     //proposals storage
     address[] proposals;
-    
-    uint private feeMin = 0.1 ether;
-    uint private feeMax = 0.4 ether;
+
+    uint public feeMin = 0.1 ether;
+    uint public feeMax = 0.4 ether;
 
     event NewProposal(address indexed _proposal);
 
-    function ProposalController() public {
+    function ProposalController() public payable {
         owner = msg.sender;
     }
     
@@ -45,6 +45,9 @@ contract ProposalController is Ownable {
         voteContract = Vote(_address);
     }
 
+    function setPoolContractAddress(address _address) public onlyOwner {
+        poolContract = Pool(_address);
+    }
     //tick proposal by curator
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == not activism
     function tickProposal(Proposal proposal, uint8 _tick) public {
@@ -90,7 +93,7 @@ contract ProposalController is Ownable {
     function getProposalsList() public view returns(address[]) {
         return proposals;
     }
-    
+
     function getProposal(Proposal proposal) public view returns(uint, bytes32, bytes32, bytes32, bytes32, uint, uint, uint) {
         return(
             proposal.id(),

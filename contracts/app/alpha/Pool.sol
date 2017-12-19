@@ -9,9 +9,9 @@ contract Curator {
 
 contract Pool is Ownable{
 
-    using SafeMath for *;   
+    using SafeMath for *;
 
-    Curator curatorContract; 
+    Curator curatorContract;
 
     address private proposalController;
     address private quorumContract;
@@ -24,28 +24,29 @@ contract Pool is Ownable{
     uint private timestamp;
 
     struct Transit {
-        uint timestamp;
-        uint balance;
+    uint timestamp;
+    uint balance;
     }
 
     Transit private transit;
 
-    function Pool(address _proposalController, address _voteContract, address _quorumContract, address _foundation, address _daoact) public {
+    function Pool(address _proposalController, address _voteContract, address _curatorContract, address _foundation, address _daoact) public {
+        owner = msg.sender;
         require(_proposalController != address(0));
         require(_voteContract != address(0));
-        require(_quorumContract != address(0));
-        owner = msg.sender;
+        require(_curatorContract != address(0));
         proposalController = _proposalController;
-        quorumContract = _quorumContract;
         voteContract = _voteContract;
         foundation = _foundation;
         daoact = _daoact;
         timestamp = now;
-    }
 
-    function setCuratorContractAddress(address _address) public onlyOwner {
-        require(_address != address(0));
-        curatorContract = Curator(_address);
+        curatorContract = Curator(_curatorContract);
+    }
+    ///??????????? address limitation ??????????????????
+    function setQuorumContractAddress(address _quorum) {
+        require(_quorum != address(0));
+        quorumContract = _quorum;
     }
 
     function votesFunding() external payable {
@@ -78,7 +79,7 @@ contract Pool is Ownable{
     function getTransit() external returns(uint, uint) {
         if (transit.timestamp != 0 && now < transit.timestamp + 30 days) {
             return (transit.balance, transit.timestamp);
-        }  
+        }
         if (transit.timestamp == 0 || now >= transit.timestamp + 30 days) {
             timestamp = now;
             transit.timestamp = now;

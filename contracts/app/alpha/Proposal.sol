@@ -5,9 +5,9 @@ import './ProposalController.sol';
 import '../../misc/Ownable.sol';
 
 //interfaces
-contract Quorum { 
+contract Quorum {
     function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
-    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool); 
+    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool);
 }
 contract Curator {
     function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
@@ -21,17 +21,17 @@ contract Curator {
 contract Proposal is Ownable {
 
     using SafeMath for *;
-    
+
     //system addresses variables
     ProposalController controller;
     Quorum quorumContract;
     Vote voteContract;
     Curator curatorContract;
-    
+
     //proposal status
     enum Status { curation, voting, directFunding, closed }
     Status public status;
-    
+
     //curators comment
     struct Comment {
         address author;
@@ -50,20 +50,20 @@ contract Proposal is Ownable {
     }
 
     //proposal fields
-    address private controllerAddress; //controller address for modifier
-    address private submitter; //address of submitter
-    address private approver; //address of signerer to withdraw funds
-    bool private activated; //is proposal activated by curators
-    bool private quorumReached; //is quorum rached
-    bool private withdrawn; //withdraw indocator
-    bool private pendingWithdraw; //indicate that submitter requested withdraw proccess
-    uint private flagsCount; //total flags count
-    uint private notActivism; //total amount of non activism ticks
-    uint32 private curationPeriod = 48 hours;
-    uint32 private votingPeriod = 48 hours;
-    uint32 private directFundingPeriod = 72 hours;
-    uint private totalUpticks; //total proposal upticks from curators
-    uint private totalDownticks; //total proposal downticks from curators
+    address public controllerAddress; //controller address for modifier
+    address public submitter; //address of submitter
+    address public approver; //address of signerer to withdraw funds
+    bool public activated; //is proposal activated by curators
+    bool public quorumReached; //is quorum rached
+    bool public withdrawn; //withdraw indocator
+    bool public pendingWithdraw; //indicate that submitter requested withdraw proccess
+    uint public flagsCount; //total flags count
+    uint public notActivism; //total amount of non activism ticks
+    uint32 public curationPeriod = 48 hours;
+    uint32 public votingPeriod = 48 hours;
+    uint32 public directFundingPeriod = 72 hours;
+    uint public totalUpticks; //total proposal upticks from curators
+    uint public totalDownticks; //total proposal downticks from curators
 
     uint public id; //timestamp of proposal
     bytes32 public title; //proposal title
@@ -86,7 +86,7 @@ contract Proposal is Ownable {
     mapping(address => Reaction) reactions;
     //indicate curator action and allow to get reputation
     mapping(address => bool) reputationExisted;
-    
+
     function Proposal(address _submitter, address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
         require(_submitter != address(0));
         require(_approver != address(0));
@@ -98,7 +98,7 @@ contract Proposal is Ownable {
         owner = msg.sender;
 
         if (_activism == false) {
-            status = Status.directFunding;         
+            status = Status.directFunding;
         }
 
         controller = ProposalController(msg.sender);
