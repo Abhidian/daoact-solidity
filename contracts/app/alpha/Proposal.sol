@@ -4,19 +4,11 @@ import '../../misc/SafeMath.sol';
 import './ProposalController.sol';
 import '../../misc/Ownable.sol';
 
-//interfaces
-contract Quorum {
-    function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
-    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool);
-}
-
 contract Proposal is Ownable {
 
     using SafeMath for *;
 
-    //system addresses variables
     ProposalController controller;
-    Quorum quorumContract;
 
     //proposal status
     enum Status { curation, voting, directFunding, closed }
@@ -118,7 +110,7 @@ contract Proposal is Ownable {
     
     //curators ticks
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == not activism
-    function tick(address _curator, uint8 _tick) external onlyController checkStatus(Status.curation) {
+    function tick(address _curator, uint8 _tick) external onlyController checkStatus(Status.curation) returns(bool) {
         require(reactions[_curator].flag == false);
         require(reactions[_curator].uptick == false);
         require(reactions[_curator].downtick == false);
@@ -144,16 +136,29 @@ contract Proposal is Ownable {
         }
         
         reputationExisted[_curator] = true;
-        
-        if (now > curationPeriod) {
-            if (quorumContract.checkQuratorsQuorum(totalUpticks, totalDownticks)) {
-                activated = true;
-                status = Status.voting;
-            } else {
-                activated = false;
-                status = Status.closed;
-            }
-        }
+        return true;
+    }
+
+    function setActivated() external onlyController returns(bool) {
+        require(activated == false);
+        activated = true;
+        return true;
+    }
+
+    function setStatus(Status _status) external onlyController returns(bool) {
+        status = _status;
+        return true;
+    }
+
+    function setQuorumReached() external onlyController returns(bool) {
+        require(quorumReached == false);
+        quorumReached = true;
+        return true;
+    }
+
+    function setFunds(uint _funds) external onlyController returns(bool) {
+        require(funds == 0);
+        funds = _funds;
     }
     
     //curators comments
@@ -193,14 +198,14 @@ contract Proposal is Ownable {
             return false;
         }
 
-        if (now > id.add(curationPeriod).add(votingPeriod)) {
-            (quorumReached, funds) = quorumContract.checkCitizenQuorum(upVotes, downVotes, this, value);
-            if (funds < value) {
-                status = Status.directFunding;
-            } else {
-                status = Status.closed;
-            }
-        }
+        // if (now > id.add(curationPeriod).add(votingPeriod)) {
+        //     (quorumReached, funds) = quorumContract.checkCitizenQuorum(upVotes, downVotes, this, value);
+        //     if (funds < value) {
+        //         status = Status.directFunding;
+        //     } else {
+        //         status = Status.closed;
+        //     }
+        // }
         return true;
     }
 
@@ -230,7 +235,7 @@ contract Proposal is Ownable {
         }
     }
 
-    //Should be called by curator
+    //Should be called by curator from controller
     function getReputation(address _curator) external onlyController checkStatus(Status.directFunding) returns(bool, bool, bool, bool, bool) {
         require(reputationExisted[_curator] == true);
         reputationExisted[_curator] = false;

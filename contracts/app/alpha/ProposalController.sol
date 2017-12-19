@@ -2,6 +2,7 @@ pragma solidity ^0.4.18;
 
 import './Proposal.sol';
 import '../../misc/Ownable.sol';
+import '../../misc/SafeMath.sol';
 
 contract Pool {
     function submitionFunding() external payable returns(bool);
@@ -9,6 +10,11 @@ contract Pool {
 
 contract Vote {
     function withdraw(address _from) external returns(bool);
+}
+
+contract Quorum {
+    function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
+    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool);
 }
 
 contract Curator {
@@ -21,15 +27,20 @@ contract Curator {
 
 contract ProposalController is Ownable {
 
+    using SafeMath for *;
+
     Pool poolContract;
     Vote voteContract;
     Curator curatorContract;
+    Quorum quorumContract;
     
     //proposals storage
     address[] proposals;
 
     uint public feeMin = 0.1 ether;
     uint public feeMax = 0.4 ether;
+    uint public curationPeriod = 48 hours;
+    uint public votingPeriod = 48 hours;
 
     event NewProposal(address indexed _proposal);
 
@@ -62,11 +73,25 @@ contract ProposalController is Ownable {
         curatorContract = Curator(_address);
     }
 
+    function setQuorumContractAddress(address _address) public onlyOwner {
+        quorumContract = Quorum(_address);
+    }
+
     //tick proposal by curator
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == not activism
     function tickProposal(Proposal proposal, uint8 _tick) public {
         require(curatorContract.limits(msg.sender, _tick));
-        proposal.tick(msg.sender, _tick);
+        require(proposal.tick(msg.sender, _tick));
+        var proposalTimestamp = proposal.id();
+        
+        if (now > proposalTimestamp.add(curationPeriod)) {
+            if (quorumContract.checkQuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
+                require(proposal.setActivated());
+                require(proposal.setStatus(2));
+            } else {
+                require(proposal.setStatus(3));
+            }
+        }
     }
 
     //add comment by curator
@@ -83,12 +108,25 @@ contract ProposalController is Ownable {
         curatorContract.calcEffort(reputation, author);
         proposal.uptickComment(_index, msg.sender);
     }
-    
+
     //citizen vote
     //1 == vote up, 2 == vote down
     function citizenVote(Proposal proposal, uint _vote) public {
         require(proposal.vote(msg.sender, _vote));
         require(voteContract.withdraw(msg.sender));
+        var proposalTimestamp = proposal.id();
+        if (now > proposalTimestamp.add(curationPeriod).add(votingPeriod)) {
+            var (reached, funds) =  quorumContract.checkCitizenQuorum(proposal.upVotes(), proposal.downVotes(), proposal, proposal.value());
+            if (reached == true) {
+                require(proposal.setQuorumReached());
+                require(proposal.setFunds(funds));
+                if (funds < proposal.value()) {
+                    require(proposal.setStatus(2));
+                } else {
+                    require(proposal.setStatus(3));
+                }
+            }
+        }
     }
 
     //proposal direct funding
