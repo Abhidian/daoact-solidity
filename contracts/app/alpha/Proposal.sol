@@ -40,7 +40,7 @@ contract Proposal is Ownable {
         uint totalUpticks;
         mapping(address => bool) upticked;
     }
-    
+
     //curators reaction
     struct Reaction {
         bool uptick;
@@ -75,7 +75,7 @@ contract Proposal is Ownable {
     uint public commentsIndex; //indexes in order to get comments
     uint public upVotes; //total up votes from citizens
     uint public downVotes; //total down votes from citizens
-    
+
     //comments storage
     mapping(uint => Comment) comments;
     //agains citizens votes storage to be able to send back vote in case of quorum not reached
@@ -88,7 +88,6 @@ contract Proposal is Ownable {
     mapping(address => bool) reputationExisted;
     
     function Proposal(address _submitter, address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
-        owner = msg.sender;
         require(_submitter != address(0));
         require(_approver != address(0));
         require(_approver != _submitter);
@@ -96,9 +95,10 @@ contract Proposal is Ownable {
         require(_description.length > 0);
         require(_videoLink.length > 0);
         require(_value > 0);
+        owner = msg.sender;
 
         if (_activism == false) {
-            status = Status.directFunding;            
+            status = Status.directFunding;         
         }
 
         controller = ProposalController(msg.sender);

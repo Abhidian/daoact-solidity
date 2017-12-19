@@ -91,7 +91,7 @@ contract ProposalController is Ownable {
         return proposals;
     }
     
-    function getProposal(Proposal proposal) public view returns(uint, bytes32, bytes32, bytes32, bytes32, uint, uint) {
+    function getProposal(Proposal proposal) public view returns(uint, bytes32, bytes32, bytes32, bytes32, uint, uint, uint) {
         return(
             proposal.id(),
             proposal.title(),
@@ -99,7 +99,12 @@ contract ProposalController is Ownable {
             proposal.videoLink(),
             proposal.documentsLink(),
             proposal.value(),
+            proposal.commentsIndex(),
             uint(proposal.status())
         );
+    }
+
+    function getComments(Proposal proposal, uint _index) public view returns(address, uint, bytes32, uint) {
+        return proposal.getComment(_index);
     }
 }

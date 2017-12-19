@@ -12,7 +12,7 @@ import '../misc/Pausable.sol';
 import '../misc/ReentrancyGuard.sol';
 
 
-contract ACTToken is Pausable, ReentrancyGuard{
+contract ACTToken is Pausable, ReentrancyGuard {
 
   using SafeMath for *;
 
@@ -28,8 +28,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
   event Approval(address indexed owner, address indexed spender, uint256 value);
   event Transfer(address indexed from, address indexed to, uint256 value);
 
-  function ACTToken(address setOwner, address setTokenOwner) public
-  {
+  function ACTToken(address setOwner, address setTokenOwner) public {
     owner = setOwner;
     balances[setTokenOwner] = supply;
   }
@@ -126,7 +125,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
     return true;
   }
 
-  function totalSupply() public constant returns (uint256){
+  function totalSupply() public constant returns (uint256) {
     return supply;
   }
 
@@ -139,8 +138,8 @@ contract ACTToken is Pausable, ReentrancyGuard{
   event Migrate(address indexed _from, address indexed _to, uint256 _value);
   event Upgrading(bool status);
 
-  function migrationAgent() external constant returns(address){ return agent; }
-  function upgradingEnabled()  external constant returns(bool){ return upgrading; }
+  function migrationAgent() external constant returns(address) { return agent; }
+  function upgradingEnabled()  external constant returns(bool) { return upgrading; }
 
   /**
    * @notice Migrate tokens to the new token contract.
@@ -156,7 +155,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
     supply = supply.sub(_value);
     totalMigrated = totalMigrated.add(_value);
     
-    if(!agent.migrateFrom(msg.sender, _value)){
+    if (!agent.migrateFrom(msg.sender, _value)) {
       revert();
     }
     Migrate(msg.sender, agent, _value);
@@ -170,11 +169,11 @@ contract ACTToken is Pausable, ReentrancyGuard{
   function setMigrationAgent(address _agent) external isUpgrading onlyOwner {
     require(_agent != 0x00);
     agent = MigrationAgent(_agent);
-    if(!agent.isMigrationAgent()){
+    if (!agent.isMigrationAgent()) {
       revert();
     }
     
-    if(agent.originalSupply() != supply){
+    if (agent.originalSupply() != supply) {
       revert();
     }
   }
@@ -183,7 +182,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
    * @notice Enable upgrading to allow tokens migration to new contract
    * process.
    */
-  function tweakUpgrading() external onlyOwner{
+  function tweakUpgrading() external onlyOwner {
       upgrading = !upgrading;
       Upgrading(upgrading);
   }

@@ -17,7 +17,7 @@ module.exports = function(deployer) {
 
         ProposalController.new().then(function(proposalController) {
             //SET vote contract address MANUALY!
-            console.log('Proposal contract address: ', proposalController.address);
+            console.log('Proposal controller contract address: ', proposalController.address);
             
             Quorum.new().then(function(quorumContract) {
                 //SET pool contract address MANUALY!
@@ -44,6 +44,5 @@ module.exports = function(deployer) {
                 });
             });
         });
-
     });
 };

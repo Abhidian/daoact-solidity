@@ -1,24 +1,19 @@
-
 module.exports = {
   networks: {
-    t: {
-      host: "localhost",
-      port: 9545,
-      network_id: "*" // Match any network id
-    },
-
     development: {
       host: "localhost",
       port: 8545,
-      network_id: "*", // Match any network id
-      gas: 4000000
+      network_id: "*" // Match any network id
     },
-    
-    ropsten: {
+     ropsten:  {
+      network_id: 3,
       host: "localhost",
-      port: 8585,
-      network_id: "3",
-      gas: 4000000
+      port:  8545,
+      gas:   2900000
     }
+  },
+  rpc: {
+    host: 'localhost',
+    post:8080
   }
 };
