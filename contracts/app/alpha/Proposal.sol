@@ -5,9 +5,9 @@ import './ProposalController.sol';
 import '../../misc/Ownable.sol';
 
 //interfaces
-contract Quorum { 
+contract Quorum {
     function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
-    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool); 
+    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool);
 }
 contract Curator {
     function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
@@ -21,49 +21,49 @@ contract Curator {
 contract Proposal is Ownable {
 
     using SafeMath for *;
-    
+
     //system addresses variables
     ProposalController controller;
     Quorum quorumContract;
     Vote voteContract;
     Curator curatorContract;
-    
+
     //proposal status
     enum Status { curation, voting, directFunding, closed }
     Status public status;
-    
+
     //curators comment
     struct Comment {
-        address author;
-        uint timestamp;
-        bytes32 text;
-        uint totalUpticks;
-        mapping(address => bool) upticked;
+    address author;
+    uint timestamp;
+    bytes32 text;
+    uint totalUpticks;
+    mapping(address => bool) upticked;
     }
-    
+
     //curators reaction
     struct Reaction {
-        bool uptick;
-        bool downtick;
-        bool flag;
-        bool notActivism;
+    bool uptick;
+    bool downtick;
+    bool flag;
+    bool notActivism;
     }
 
     //proposal fields
-    address private controllerAddress; //controller address for modifier
-    address private submitter; //address of submitter
-    address private approver; //address of signerer to withdraw funds
-    bool private activated; //is proposal activated by curators
-    bool private quorumReached; //is quorum rached
-    bool private withdrawn; //withdraw indocator
-    bool private pendingWithdraw; //indicate that submitter requested withdraw proccess
-    uint private flagsCount; //total flags count
-    uint private notActivism; //total amount of non activism ticks
-    uint32 private curationPeriod = 48 hours;
-    uint32 private votingPeriod = 48 hours;
-    uint32 private directFundingPeriod = 72 hours;
-    uint private totalUpticks; //total proposal upticks from curators
-    uint private totalDownticks; //total proposal downticks from curators
+    address public controllerAddress; //controller address for modifier
+    address public submitter; //address of submitter
+    address public approver; //address of signerer to withdraw funds
+    bool public activated; //is proposal activated by curators
+    bool public quorumReached; //is quorum rached
+    bool public withdrawn; //withdraw indocator
+    bool public pendingWithdraw; //indicate that submitter requested withdraw proccess
+    uint public flagsCount; //total flags count
+    uint public notActivism; //total amount of non activism ticks
+    uint32 public curationPeriod = 48 hours;
+    uint32 public votingPeriod = 48 hours;
+    uint32 public directFundingPeriod = 72 hours;
+    uint public totalUpticks; //total proposal upticks from curators
+    uint public totalDownticks; //total proposal downticks from curators
 
     uint public id; //timestamp of proposal
     bytes32 public title; //proposal title
@@ -75,7 +75,7 @@ contract Proposal is Ownable {
     uint public commentsIndex; //indexes in order to get comments
     uint public upVotes; //total up votes from citizens
     uint public downVotes; //total down votes from citizens
-    
+
     //comments storage
     mapping(uint => Comment) comments;
     //agains citizens votes storage to be able to send back vote in case of quorum not reached
@@ -86,7 +86,7 @@ contract Proposal is Ownable {
     mapping(address => Reaction) reactions;
     //indicate curator action and allow to get reputation
     mapping(address => bool) reputationExisted;
-    
+
     function Proposal(address _submitter, address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
         owner = msg.sender;
         require(_submitter != address(0));
@@ -98,7 +98,7 @@ contract Proposal is Ownable {
         require(_value > 0);
 
         if (_activism == false) {
-            status = Status.directFunding;            
+            status = Status.directFunding;
         }
 
         controller = ProposalController(msg.sender);
@@ -118,14 +118,14 @@ contract Proposal is Ownable {
         require(msg.sender == controllerAddress);
         _;
     }
-    
+
     modifier checkStatus(Status _status) {
         require(status == _status);
         _;
     }
-    
+
     // CURATORS //
-    
+
     //curators ticks
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == not activism
     function tick(address _curator, uint8 _tick) external onlyController checkStatus(Status.curation) {
@@ -153,9 +153,9 @@ contract Proposal is Ownable {
         } else {
             revert();
         }
-        
+
         reputationExisted[_curator] = true;
-        
+
         if (now > curationPeriod) {
             if (quorumContract.checkQuratorsQuorum(totalUpticks, totalDownticks)) {
                 activated = true;
@@ -166,7 +166,7 @@ contract Proposal is Ownable {
             }
         }
     }
-    
+
     //curators comments
     function addComment(address _curator, bytes32 _text) external onlyController checkStatus(Status.curation) {
         require(curatorContract.limits(_curator, 5));
@@ -175,7 +175,7 @@ contract Proposal is Ownable {
         comments[commentsIndex] = Comment(_curator, now, _text, 0);
         reputationExisted[_curator] = true;
     }
-    
+
     //curators upticks for comments
     //should send 1 to uptick, another values not allowed
     //request should include address of comment author
@@ -194,10 +194,10 @@ contract Proposal is Ownable {
     //citizen votes
     // 1 == vote up, 2 == vote down
     function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) returns(bool) {
-        
+
         require(voted[_voter] == false);
         voted[_voter] = true;
-        
+
         if (_vote == 1) {
             upVotes = upVotes.add(1);
         } else if (_vote == 2) {
@@ -250,40 +250,40 @@ contract Proposal is Ownable {
         require(reputationExisted[_curator] == true);
         reputationExisted[_curator] = false;
         curatorContract.calcPos(
-            _curator,
-            activated,
-            quorumReached,
-            reactions[_curator].uptick,
-            reactions[_curator].downtick,
-            reactions[_curator].flag
+        _curator,
+        activated,
+        quorumReached,
+        reactions[_curator].uptick,
+        reactions[_curator].downtick,
+        reactions[_curator].flag
         );
         curatorContract.calcNeg(
-            _curator,
-            activated,
-            quorumReached,
-            reactions[_curator].uptick,
-            reactions[_curator].downtick,
-            reactions[_curator].flag
+        _curator,
+        activated,
+        quorumReached,
+        reactions[_curator].uptick,
+        reactions[_curator].downtick,
+        reactions[_curator].flag
         );
     }
-    
+
     //getters
 
     //save index of comment on middleware during get proccess!
     function getComment(uint _index) external view onlyController returns(address, uint, bytes32, uint) {
         return (
-            comments[_index].author,
-            comments[_index].timestamp,
-            comments[_index].text,
-            comments[_index].totalUpticks
+        comments[_index].author,
+        comments[_index].timestamp,
+        comments[_index].text,
+        comments[_index].totalUpticks
         );
     }
 
     function getReaction(address _curator) external view onlyController returns(bool, bool, bool) {
         return (
-            reactions[_curator].uptick,
-            reactions[_curator].downtick,
-            reactions[_curator].flag
+        reactions[_curator].uptick,
+        reactions[_curator].downtick,
+        reactions[_curator].flag
         );
     }
 }

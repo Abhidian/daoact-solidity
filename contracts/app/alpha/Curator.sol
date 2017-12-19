@@ -3,15 +3,17 @@ pragma solidity ^0.4.18;
 import "../../misc/SafeMath.sol";
 import '../../misc/Ownable.sol';
 
-contract CE7 { function getBalance(address _curator) public view returns (uint);}
+contract Ce7 { function getBalance(address _curator) public view returns (uint);}
 contract ReputationGroupDividing { function getGroupRate (uint _rep) public returns (uint);}
-contract Pool { function getTransit() external returns (uint, uint);}
+contract Pool {
+    function getTransit() external returns(uint, uint);
+}
 
-contract Curator is Ownable {
+contract Curator {
 
     using SafeMath for *;
 
-    CE7 ce7Token;
+    Ce7 ce7Token;
     ReputationGroupDividing repGroup;
     Pool pool;
 
@@ -19,6 +21,22 @@ contract Curator is Ownable {
     uint fullEffortA;
     uint fullEffortB;
     uint fullEffortC;
+
+    struct CuratorInstance {
+    bool exist;
+    uint reputation;
+    uint rewarding;
+    uint reputationGroup;
+    uint limitLike;
+    uint limitFlag;
+    uint limitComment;
+    uint limitLikeComment;
+    uint timestampLimits;
+    uint effortA;
+    uint effortB;
+    uint effortC;
+    uint platformEffort;
+    }
 
     // rate of reputation, depends on was proposal activated or not, reached quorum or not and curator's reaction
     uint activationQuorumUptick;
@@ -28,37 +46,17 @@ contract Curator is Ownable {
     uint noActivationNoQuorumUptick;
     uint activationQuorumDowntick;
 
-    struct CuratorInstance {
-        bool exist;
-        uint reputation;
-        uint rewarding;
-        uint reputationGroup;
-        uint limitLike;
-        uint limitFlag;
-        uint limitComment;
-        uint limitLikeComment;
-        uint timestampLimits;
-        uint effortA;
-        uint effortB;
-        uint effortC;
-        uint platformEffort;
-    }
-
     mapping (address => CuratorInstance) curators;
     mapping(address => uint) balances;
 
-    address private proposalController;
+    address public proposalController;
 
-    function Curator(address _proposalController, address _ce7Token, address _repGroup, address _pool) public {
-        owner = msg.sender;
-        require(_proposalController != address(0));
+    function Curator(address _ce7Token, address _repGroup) public {
         require(_ce7Token != address(0));
         require(_repGroup != address(0));
-        require(_pool != address(0));        
-        ce7Token = CE7(_ce7Token);
+        ce7Token = Ce7(_ce7Token);
         repGroup = ReputationGroupDividing(_repGroup);
-        pool = Pool(_pool);
-        proposalController = _proposalController;
+
 
         // sum of reputation from all curators on the fullPlatformReputation
         fullPlatformReputation = 0;
@@ -72,12 +70,21 @@ contract Curator is Ownable {
         activationQuorumDowntick = 5;
     }
 
+    function setAddressPool (address _pool) public {
+        pool = Pool(_pool);
+    }
+
+    function setProposalControllerAddress (address _proposalController) public {
+        require(_proposalController != address(0));
+        proposalController = _proposalController;
+    }
+
     modifier onlyProposalControler() {
         require(msg.sender == proposalController);
         _;
     }
 
-    //create curator with 0 reputation, 0 rewarding and 1 reputation group. Will be called while curator is registrating on the platform 
+    //create curator with 0 reputation, 0 rewarding and 1 reputation group
     function createCurator() public {
         var ce7Balance = ce7Token.getBalance(msg.sender);
         if (ce7Balance < 1000 ) {
@@ -94,8 +101,8 @@ contract Curator is Ownable {
         }
     }
 
-    function getCuratorRewarding(address _curator) public view returns (uint) {
-        return curators[_curator].rewarding;
+    function getCuratorRewarding() public view returns (uint) {
+        return curators[msg.sender].rewarding;
     }
 
     function getFullReputation() public view returns (uint) {
@@ -110,7 +117,7 @@ contract Curator is Ownable {
     //calculate curator's effort
     function calcEffort(uint _effort, address _curator) external onlyProposalControler {
         require(curators[_curator].exist == true);
-        var (poolRewarding,timestamp) = pool.getTransit();
+        var (poolRewarding,timestamp)  = pool.getTransit();
         var ce7Balance = ce7Token.getBalance(_curator);
 
         if (now <= timestamp.add(30 days)) {
@@ -319,7 +326,6 @@ contract Curator is Ownable {
             curators[_curator].timestampLimits = now;
         }
     }
-
     // function getLimits (address _curator) public returns (uint,uint,uint,uint) {
     //     require(curators[_curator].exist == true);
     //     return ( 

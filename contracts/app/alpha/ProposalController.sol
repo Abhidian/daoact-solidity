@@ -15,19 +15,19 @@ contract ProposalController is Ownable {
 
     Pool poolContract;
     Vote voteContract;
-    
+
     //proposals storage
     address[] proposals;
-    
-    uint private feeMin = 0.1 ether;
-    uint private feeMax = 0.4 ether;
+
+    uint public feeMin = 0.1 ether;
+    uint public feeMax = 0.4 ether;
 
     event NewProposal(address indexed _proposal);
 
-    function ProposalController() public {
+    function ProposalController() public payable {
         owner = msg.sender;
     }
-    
+
     function creatProposal(address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
         if (_value <= 22) {
             require(msg.value == feeMin);
@@ -45,6 +45,9 @@ contract ProposalController is Ownable {
         voteContract = Vote(_address);
     }
 
+    function setPoolContractAddress(address _address) public onlyOwner {
+        poolContract = Pool(_address);
+    }
     //tick proposal by curator
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == not activism
     function tickProposal(Proposal proposal, uint8 _tick) public {
@@ -75,7 +78,7 @@ contract ProposalController is Ownable {
     }
 
     //request funds by submitter
-    //two signature required! First request must be only from submitter address 
+    //two signature required! First request must be only from submitter address
     //and second - only from approver address!
     function withdrawProposal(Proposal proposal) public {
         proposal.wirthdrawFunds(msg.sender);
@@ -90,16 +93,20 @@ contract ProposalController is Ownable {
     function getProposalsList() public view returns(address[]) {
         return proposals;
     }
-    
+
     function getProposal(Proposal proposal) public view returns(uint, bytes32, bytes32, bytes32, bytes32, uint, uint) {
         return(
-            proposal.id(),
-            proposal.title(),
-            proposal.description(),
-            proposal.videoLink(),
-            proposal.documentsLink(),
-            proposal.value(),
-            uint(proposal.status())
+        proposal.id(),
+        proposal.title(),
+        proposal.description(),
+        proposal.videoLink(),
+        proposal.documentsLink(),
+        proposal.value(),
+        uint(proposal.status())
         );
+    }
+
+    function getComments(Proposal proposal, uint _index) public view returns(address, uint, bytes32, uint) {
+        return proposal.getComment(_index);
     }
 }
