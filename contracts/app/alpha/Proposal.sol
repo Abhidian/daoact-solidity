@@ -9,14 +9,6 @@ contract Quorum {
     function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
     function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool);
 }
-contract Curator {
-    function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
-    function calcNeg(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public;
-    function markAsProcessed(address _proposal, address _curator) external;
-    function limits(address _curator, uint8 _action) external returns(bool);
-    function getReputation (address _curator) external view returns(uint);
-    function calcEffort (uint _effort, address _curator) external;
-}
 
 contract Proposal is Ownable {
 
@@ -25,7 +17,6 @@ contract Proposal is Ownable {
     //system addresses variables
     ProposalController controller;
     Quorum quorumContract;
-    Curator curatorContract;
 
     //proposal status
     enum Status { curation, voting, directFunding, closed }
@@ -54,7 +45,7 @@ contract Proposal is Ownable {
     address public approver; //address of signerer to withdraw funds
     bool public activated; //is proposal activated by curators
     bool public quorumReached; //is quorum rached
-    bool public withdrawn; //withdraw indocator
+    bool public withdrawn; //withdraw indicator
     bool public pendingWithdraw; //indicate that submitter requested withdraw proccess
     uint public flagsCount; //total flags count
     uint public notActivism; //total amount of non activism ticks
@@ -132,7 +123,6 @@ contract Proposal is Ownable {
         require(reactions[_curator].uptick == false);
         require(reactions[_curator].downtick == false);
         require(reactions[_curator].notActivism == false);
-        require(curatorContract.limits(_curator, _tick));
         if (_tick == 1) {
             reactions[_curator].uptick = true;
         } else if (_tick == 2) {
@@ -168,7 +158,6 @@ contract Proposal is Ownable {
     
     //curators comments
     function addComment(address _curator, bytes32 _text) external onlyController checkStatus(Status.curation) {
-        require(curatorContract.limits(_curator, 5));
         require(_text.length > 0);
         commentsIndex = commentsIndex.add(1);
         comments[commentsIndex] = Comment(_curator, now, _text, 0);
@@ -181,11 +170,8 @@ contract Proposal is Ownable {
     //should save index on middleware during get proccess in order to request exact comment!
     function uptickComment(uint _index, address _curator) external onlyController checkStatus(Status.curation) {
         require(comments[_index].upticked[_curator] == false);
-        require(curatorContract.limits(_curator, 6));
         comments[_index].upticked[_curator] == true;
-        var reputation = curatorContract.getReputation(_curator);
         comments[_index].totalUpticks = comments[_index].totalUpticks.add(1);
-        curatorContract.calcEffort(reputation, comments[_index].author);
     }
 
     // CITIZEN //
@@ -245,19 +231,10 @@ contract Proposal is Ownable {
     }
 
     //Should be called by curator
-    function getReputation(address _curator) external onlyController checkStatus(Status.directFunding) {
+    function getReputation(address _curator) external onlyController checkStatus(Status.directFunding) returns(bool, bool, bool, bool, bool) {
         require(reputationExisted[_curator] == true);
         reputationExisted[_curator] = false;
-        curatorContract.calcPos(
-            _curator,
-            activated,
-            quorumReached,
-            reactions[_curator].uptick,
-            reactions[_curator].downtick,
-            reactions[_curator].flag
-        );
-        curatorContract.calcNeg(
-            _curator,
+        return (
             activated,
             quorumReached,
             reactions[_curator].uptick,
@@ -276,6 +253,10 @@ contract Proposal is Ownable {
             comments[_index].text,
             comments[_index].totalUpticks
         );
+    }
+
+    function getCommentAuthor(uint _index) external view onlyController returns(address) {
+        return comments[_index].author;
     }
 
     function getReaction(address _curator) external view onlyController returns(bool, bool, bool) {

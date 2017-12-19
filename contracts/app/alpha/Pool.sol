@@ -7,7 +7,7 @@ contract Curator {
     function getCuratorRewarding(address _curator) public view returns (uint);
 }
 
-contract Pool is Ownable{
+contract Pool is Ownable {
 
     using SafeMath for *;
 
@@ -24,8 +24,8 @@ contract Pool is Ownable{
     uint private timestamp;
 
     struct Transit {
-    uint timestamp;
-    uint balance;
+        uint timestamp;
+        uint balance;
     }
 
     Transit private transit;
@@ -44,7 +44,7 @@ contract Pool is Ownable{
         curatorContract = Curator(_curatorContract);
     }
     ///??????????? address limitation ??????????????????
-    function setQuorumContractAddress(address _quorum) {
+    function setQuorumContractAddress(address _quorum) public onlyOwner {
         require(_quorum != address(0));
         quorumContract = _quorum;
     }
