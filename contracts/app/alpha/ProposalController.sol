@@ -43,6 +43,7 @@ contract ProposalController is Ownable {
     uint public votingPeriod = 48 hours;
 
     event NewProposal(address indexed _proposal);
+    event VoteCasted(address indexed _proposal, address indexed _voter, uint indexed _vote);
 
     function ProposalController() public payable {
         owner = msg.sender;
@@ -127,6 +128,7 @@ contract ProposalController is Ownable {
                 }
             }
         }
+        VoteCasted(proposal, msg.sender, _vote);
     }
 
     //proposal direct funding
