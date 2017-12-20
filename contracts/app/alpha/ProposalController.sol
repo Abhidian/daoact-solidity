@@ -33,7 +33,7 @@ contract ProposalController is Ownable {
     Vote voteContract;
     Curator curatorContract;
     Quorum quorumContract;
-
+    
     //proposals storage
     address[] proposals;
 
@@ -47,7 +47,7 @@ contract ProposalController is Ownable {
     function ProposalController() public payable {
         owner = msg.sender;
     }
-
+    
     function creatProposal(address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
         if (_value <= 22) {
             require(msg.value == feeMin);
@@ -83,13 +83,13 @@ contract ProposalController is Ownable {
         require(curatorContract.limits(msg.sender, _tick));
         require(proposal.tick(msg.sender, _tick));
         var proposalTimestamp = proposal.id();
-
+        
         if (now > proposalTimestamp.add(curationPeriod)) {
             if (quorumContract.checkQuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
                 require(proposal.setActivated());
-                require(proposal.setStatus(2));
+                require(proposal.setStatus(1));//set status "Voting"
             } else {
-                require(proposal.setStatus(3));
+                require(proposal.setStatus(3));//set status "Closed"
             }
         }
     }
@@ -121,9 +121,9 @@ contract ProposalController is Ownable {
                 require(proposal.setQuorumReached());
                 require(proposal.setFunds(funds));
                 if (funds < proposal.value()) {
-                    require(proposal.setStatus(2));
+                    require(proposal.setStatus(2));//set status "Direct funding"
                 } else {
-                    require(proposal.setStatus(3));
+                    require(proposal.setStatus(3));//set status "Closed"
                 }
             }
         }
@@ -136,7 +136,7 @@ contract ProposalController is Ownable {
     }
 
     //request funds by submitter
-    //two signature required! First request must be only from submitter address
+    //two signature required! First request must be only from submitter address 
     //and second - only from approver address!
     function withdrawProposal(Proposal proposal) public {
         proposal.wirthdrawFunds(msg.sender);

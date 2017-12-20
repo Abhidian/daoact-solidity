@@ -145,8 +145,16 @@ contract Proposal is Ownable {
         return true;
     }
 
-    function setStatus(Status _status) external onlyController returns(bool) {
-        status = _status;
+    function setStatus(uint8 _status) external onlyController returns(bool) {
+        if (_status == 1) {
+            status = Status.voting;
+        } else if (_status == 2) {
+            status = Status.directFunding;
+        } else if (_status == 3) {
+            status = Status.closed;
+        } else {
+            revert();
+        }
         return true;
     }
 
