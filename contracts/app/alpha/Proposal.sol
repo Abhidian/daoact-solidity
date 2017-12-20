@@ -164,8 +164,8 @@ contract Proposal is Ownable {
     //curators comments
     function addComment(address _curator, bytes32 _text) external onlyController checkStatus(Status.curation) {
         require(_text.length > 0);
-        commentsIndex = commentsIndex.add(1);
         comments[commentsIndex] = Comment(_curator, now, _text, 0);
+        commentsIndex = commentsIndex.add(1);
         reputationExisted[_curator] = true;
     }
 
