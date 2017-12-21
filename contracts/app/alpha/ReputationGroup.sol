@@ -3,40 +3,62 @@ pragma solidity ^0.4.18;
 import "../../misc/SafeMath.sol";
 import '../../misc/Ownable.sol';
 
-contract Pool { function proposalFund(address _proposal, uint _value) external returns(uint); }
+contract Curator { function getFullReputation () view public returns (uint) ; }
 
-contract Quorum is Ownable {
+contract ReputationGroupDividing {
 
-    using SafeMath for *;
+    using SafeMath for uint;
 
-    Pool poolContract;
+    uint fullReputation;
+    uint groupA;
+    uint groupB;
+    uint groupC;
+    uint groupD;
+    uint reputationRate;
+    Curator curator;
 
-    function Quorum() public {
-        owner = msg.sender;
+    //set curator contract address
+    function setCurator(address _cur)public {
+        curator = Curator(_cur);
     }
 
-    function setPoolAddress (address _poolContract) public {
-        poolContract = Pool(_poolContract);
+
+    function getFullReputation () public view returns (uint) {
+        fullReputation = curator.getFullReputation();
+        return fullReputation;
     }
 
-    function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint) {
-        var allVotes = _upVotes.add(_downVotes);
-        var citizensQuorum = uint(_upVotes).mul(uint(100)).div(uint(allVotes));
-        if (citizensQuorum >= 60) {
-            var result = poolContract.proposalFund(_proposal, _value);
-            return (true, result);
-        } else {
-            return (false, 0);
-        }
+    //groupA = 1, bottom 5%
+    //groupB = 2
+    //groupC = 3
+    //groupD = 4
+
+    //will be triggered by foundation by clicking button to calculate groups rate according to the reputation
+    //'fullReputation' - reputation of all curators on the platform. Getting from the Curator contract
+    function calculateRates () public {
+        fullReputation = curator.getFullReputation();
+        groupA = (fullReputation.mul(5)).div(100);
+        groupB = (fullReputation.mul(35)).div(100);
+        groupC = (fullReputation.mul(80)).div(100);
     }
 
-    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool) {
-        var allTicks = _upTicks.add(_downTicks);
-        var curatorsQuorum = uint(_upTicks).mul(uint(100)).div(uint(allTicks));
-        if (curatorsQuorum >= 70) {
-            return true;
-        } else {
-            return false;
-        }
+    //method is calling by Curator contract after each reputation calculation for curator and assign for curator
+    //new reputation group according to the new reputation score
+    function getGroupRate (uint _rep) public returns (uint) {
+        if (_rep <= groupA) {
+            return 1;
+        } if (_rep > groupA && _rep <= groupB) {
+        return 2;
+    } if (_rep > groupB && _rep <= groupC) {
+        return 3;
+    } if (_rep > groupC) {
+        return 4;
     }
+        return reputationRate;
+    }
+
+    function returnA() public view returns (uint) {
+        return groupA;
+    }
+
 }

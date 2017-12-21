@@ -6,7 +6,7 @@ contract CE7mock is Ownable {
 
     mapping (address => uint) balances;
 
-    function CE7mock() {
+    function CE7mock() public {
         owner = msg.sender;
     }
 
