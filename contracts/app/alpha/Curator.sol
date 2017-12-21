@@ -17,10 +17,12 @@ contract Curator {
     ReputationGroupDividing repGroup;
     Pool pool;
 
+    //accumulating all reputation that have curators of the platform to calculate reputation groups for curators
+    //and limits. Group id dividing through button and only foundation is able to click it
     uint fullPlatformReputation;
-    uint fullEffortA;
-    uint fullEffortB;
-    uint fullEffortC;
+    uint fullEffortA;  //group A according to the reputation
+    uint fullEffortB;  //group C according to the reputation
+    uint fullEffortC;  //group A according to the reputation
 
     struct CuratorInstance {
     bool exist;
@@ -32,24 +34,23 @@ contract Curator {
     uint limitComment;
     uint limitLikeComment;
     uint timestampLimits;
-    uint effortA;
+    uint effortA;  //these effort groups is taken according to the number of tokens held every time when effort is calculating
     uint effortB;
     uint effortC;
-    uint platformEffort;
     }
 
     // rate of reputation, depends on was proposal activated or not, reached quorum or not and curator's reaction
-    uint activationQuorumUptick;
-    uint noActivationNoQuorumDowntick;
-    uint activationNoQuorumDowntick;
-    uint activationNoQuorumUptick;
-    uint noActivationNoQuorumUptick;
-    uint activationQuorumDowntick;
+    uint activationQuorumUptick; //if proposal was activated, reached the quorum and curator uptick this proposal
+    uint noActivationNoQuorumDowntick; //if proposal was not activated, not reached the quorum and curator downtick this proposal
+    uint activationNoQuorumDowntick; //if proposal was activated, not reached the quorum and curator downtick this proposal
+    uint activationNoQuorumUptick; //if proposal was activated, not reached the quorum and curator uptick this proposal
+    uint noActivationNoQuorumUptick; //if proposal was not activated,not reached the quorum and curator uptick this proposal
+    uint activationQuorumDowntick; //if proposal was activated, reached the quorum and curator downtick this proposal
 
     mapping (address => CuratorInstance) curators;
     mapping(address => uint) balances;
 
-    address public proposalController;
+    address public proposalController;  //ProposalController contract address
 
     function Curator(address _ce7Token, address _repGroup) public {
         require(_ce7Token != address(0));
@@ -79,6 +80,7 @@ contract Curator {
         proposalController = _proposalController;
     }
 
+    //only ProposalController contract can call some functions
     modifier onlyProposalControler() {
         require(msg.sender == proposalController);
         _;
@@ -88,23 +90,25 @@ contract Curator {
     function createCurator() public {
         var ce7Balance = ce7Token.getBalance(msg.sender);
         if (ce7Balance < 1000 ) {
-            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 0, 0, 5, now, 0, 0, 0, 0);
+            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 0, 0, 5, now, 0, 0, 0);
         }
         if (ce7Balance >= 1000 && ce7Balance < 2000) {
-            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 20, 1, 1, 10, now, 0, 0, 0, 0);
+            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 20, 1, 1, 10, now, 0, 0, 0);
         }
         if (ce7Balance >= 2000 && ce7Balance < 10000) {
-            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 20, 3, 4, 10, now, 0, 0, 0, 0);
+            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 20, 3, 4, 10, now, 0, 0, 0);
         }
         if (ce7Balance >= 1000 ) {
-            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 5, 5, 10000, now, 0, 0, 0, 0);
+            curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 5, 5, 10000, now, 0, 0, 0);
         }
     }
 
+    //getter for Pool contract to extract curator's rewarding for payment (curator is going to click the button and get rewarding every 30 days)
     function getCuratorRewarding() public view returns (uint) {
         return curators[msg.sender].rewarding;
     }
 
+    //getter for ReputationGroup contract to divide curators for different reputation group
     function getFullReputation() public view returns (uint) {
         return fullPlatformReputation;
     }
@@ -117,28 +121,37 @@ contract Curator {
     //calculate curator's effort
     function calcEffort(uint _effort, address _curator) external onlyProposalControler {
         require(curators[_curator].exist == true);
-        var (poolRewarding,timestamp)  = pool.getTransit();
+        var (poolRewarding, timestamp)  = pool.getTransit();
         var ce7Balance = ce7Token.getBalance(_curator);
 
         if (now <= timestamp.add(30 days)) {
-            if (ce7Balance >= 5 && ce7Balance <= 1999) {
-                curators[_curator].effortC = curators[_curator].effortC.add(_effort);
-                fullEffortC = fullEffortC.add(curators[_curator].effortC);
-            }
-            if (ce7Balance >= 2000 && ce7Balance <= 19999) {
-                curators[_curator].effortB = curators[_curator].effortC.add(_effort);
-                fullEffortB = fullEffortB.add(curators[_curator].effortB);
-            }
-            if (ce7Balance >= 20000) {
-                curators[_curator].effortA = curators[_curator].effortC.add(_effort);
-                fullEffortA = fullEffortA.add(curators[_curator].effortA);
-            }
+            accumulateEffort(ce7Balance, _curator, _effort);
         }
         if (now >= timestamp.add(30 days) && now <= timestamp.add(60 days)) {
             calculateRewarding(_curator, poolRewarding);
+            accumulateEffort(ce7Balance, _curator, _effort);
         }
-        if ( now >= timestamp.add(60 days)) {
+        if (now >= timestamp.add(60 days)) {
             curators[_curator].rewarding = 0;
+            fullEffortA = 0;
+            fullEffortB = 0;
+            fullEffortC = 0;
+            accumulateEffort(ce7Balance, _curator, _effort);
+        }
+    }
+
+    function accumulateEffort(uint ce7Balance, address _curator, uint _effort) internal {
+        if (ce7Balance >= 5 && ce7Balance <= 1999) {
+            curators[_curator].effortC = curators[_curator].effortC.add(_effort);
+            fullEffortC = fullEffortC.add(curators[_curator].effortC);
+        }
+        if (ce7Balance >= 2000 && ce7Balance <= 19999) {
+            curators[_curator].effortB = curators[_curator].effortC.add(_effort);
+            fullEffortB = fullEffortB.add(curators[_curator].effortB);
+        }
+        if (ce7Balance >= 20000) {
+            curators[_curator].effortA = curators[_curator].effortC.add(_effort);
+            fullEffortA = fullEffortA.add(curators[_curator].effortA);
         }
     }
 
@@ -156,7 +169,9 @@ contract Curator {
         curators[_curator].rewarding = curators[_curator].effortA*oneEffortA + curators[_curator].effortB * oneEffortB + curators[_curator].effortC * oneEffortC;
     }
 
-    //poolController call these two functions (calcPos, calcNeg) one by one to calculate reputation and rates of group according to curator's limits according to the reputation
+    //poolController call these two functions (calcPos, calcNeg - positive and negative reputation)
+    //one by one to calculate reputation and rates of group
+    //according to curator's reputation. Also here we calculate 'fullPlatformReputation'
     //groupA = 1
     //groupB = 2
     //groupC = 3
@@ -210,13 +225,14 @@ contract Curator {
         curators[_curator].reputationGroup = repGroup.getGroupRate(curators[_curator].reputation);
     }
 
-    function getCuratorGroup(address _curator) public view returns (uint) {
-        return curators[_curator].reputationGroup;
-    }
+    //getter to get reputation group for exact curator
+    //function getCuratorGroup(address _curator) public view returns (uint) {
+    //   return curators[_curator].reputationGroup;
+    //}
 
-    //proposal contract checks curator's limits once he made some action with proposal
+    //proposal contract checks curator's limits for 24 hours once he made some action with proposal
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == comment, 5 == commentLike
-    function limits(address _curator, uint _action) external onlyProposalControler returns (bool) {
+    function limits(address _curator, uint8 _action) external onlyProposalControler returns (bool) {
         if (now > (curators[_curator].timestampLimits + 24 hours)) {
             if (_action == 1 || _action == 2) {
                 if (curators[_curator].limitLike > 0) {
@@ -252,9 +268,9 @@ contract Curator {
             }
         }
         if (now < (curators[_curator].timestampLimits + 24 hours)) {
-            curators[_curator].timestampLimits = now;
-            setLimits(_curator);
-            if (_action == 1 || _action == 2) {
+            curators[_curator].timestampLimits = now;  //if timestamp is more then + 24 hours we set timestamp 'now'
+            setLimits(_curator);     //and call function to refresh limits
+            if (_action == 1 || _action == 2) { //then we need to subtract of limits exact action
                 if (curators[_curator].limitLike > 0) {
                     curators[_curator].limitLike - 1;
                     return true;

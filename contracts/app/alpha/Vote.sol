@@ -46,6 +46,11 @@ contract Vote is Ownable {
         quorum = _quorumAddr;
     }
 
+    function setProposalControllerAddress(address _newAddress) public onlyOwner {
+        require(_newAddress != address(0));
+        proposalController = _newAddress;
+    }
+
     /**
      * Used for transfering votes from one account to another
      * @param _to Recepient adress
