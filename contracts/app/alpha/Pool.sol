@@ -49,6 +49,7 @@ contract Pool is Ownable{
         quorumContract = _quorum;
     }
 
+    //payment for buying votes, dividing into 3 pools: for funding proposals, for paying curator's rewarding, paying for foundation
     function votesFunding() external payable {
         require(msg.sender == voteContract);
         var funds = msg.value;
@@ -61,6 +62,7 @@ contract Pool is Ownable{
         foundationPool = foundationPool.add(foundationPart);
     }
 
+    //accept direct funding for pool, with 5% for foundation
     function directFunding() public payable {
         var funds = msg.value;
         var funding = funds.mul(95).div(100);
@@ -69,13 +71,14 @@ contract Pool is Ownable{
         foundationPool = foundationPool.add(foundationPart);
     }
 
+    //accept payment submission fee for paying curator's rewarding
     function submitionFunding() external payable returns(bool) {
         require(msg.sender == proposalController);
         rewardingPool = rewardingPool.add(msg.value);
         return true;
     }
 
-    // getters
+    // get transit balance and timestamp
     function getTransit() external returns(uint, uint) {
         if (transit.timestamp != 0 && now < transit.timestamp + 30 days) {
             return (transit.balance, transit.timestamp);
@@ -95,6 +98,7 @@ contract Pool is Ownable{
         rewardingPool = rewardingPool.sub(rewarding);
         msg.sender.transfer(rewarding);
     }
+
 
     function proposalFund(address _proposal, uint _value) external returns(uint) {
         require(msg.sender == quorumContract);
