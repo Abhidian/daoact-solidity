@@ -169,7 +169,7 @@ contract ProposalController is Ownable {
         );
     }
 
-    function getComments(Proposal proposal, uint _index) public view returns(address, uint, bytes32, uint) {
+    function getComment(Proposal proposal, uint _index) public view returns(address, uint, bytes32, uint) {
         return proposal.getComment(_index);
     }
 
