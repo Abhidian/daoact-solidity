@@ -172,4 +172,8 @@ contract ProposalController is Ownable {
     function getComments(Proposal proposal, uint _index) public view returns(address, uint, bytes32, uint) {
         return proposal.getComment(_index);
     }
+
+    function getCuratorReaction(Proposal proposal, address _curator) public view returns(bool, bool, bool) {
+        return proposal.getReaction(_curator);
+    }
 }
