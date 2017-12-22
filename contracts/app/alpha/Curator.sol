@@ -17,8 +17,6 @@ contract Curator {
     ReputationGroupDividing repGroup;
     Pool pool;
 
-    //accumulating all reputation that have curators of the platform to calculate reputation groups for curators
-    //and limits. Group id dividing through button and only foundation is able to click it
     uint fullPlatformReputation;
     uint fullEffortA;  //group A according to the reputation
     uint fullEffortB;  //group C according to the reputation
@@ -37,6 +35,7 @@ contract Curator {
     uint effortA;  //these effort groups is taken according to the number of tokens held every time when effort is calculating
     uint effortB;
     uint effortC;
+    uint platformEffort;
     }
 
     // rate of reputation, depends on was proposal activated or not, reached quorum or not and curator's reaction
@@ -98,7 +97,7 @@ contract Curator {
         if (ce7Balance >= 2000 && ce7Balance < 10000) {
             curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 20, 3, 4, 10, now, 0, 0, 0);
         }
-        if (ce7Balance >= 1000 ) {
+        if (ce7Balance >= 10000 ) {
             curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 5, 5, 10000, now, 0, 0, 0);
         }
     }

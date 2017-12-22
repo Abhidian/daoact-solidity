@@ -97,13 +97,13 @@ contract ProposalController is Ownable {
 
     //add comment by curator
     function addComment(Proposal proposal, bytes32 _text) public {
-        require(curatorContract.limits(msg.sender, 5));
+        require(curatorContract.limits(msg.sender, 4));
         proposal.addComment(msg.sender, _text);
     }
 
     //uptick comment by curator
     function uptickComment(Proposal proposal, uint _index) public {
-        require(curatorContract.limits(msg.sender, 6));
+        require(curatorContract.limits(msg.sender, 5));
         var reputation = curatorContract.getReputation(msg.sender);
         var author = proposal.getCommentAuthor(_index);
         curatorContract.calcEffort(reputation, author);
@@ -165,7 +165,15 @@ contract ProposalController is Ownable {
             proposal.documentsLink(),
             proposal.value(),
             proposal.commentsIndex(),
-            uint(proposal.status())
+            uint(proposal.status()),
+        );
+    }
+
+    function getTicks(Proposal proposal) public view returns(uint, uint, uint) {
+        return (
+            proposal.totalUpticks(),
+            proposal.totalDownticks(),
+            proposal.flagsCount()
         );
     }
 
