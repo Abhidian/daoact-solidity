@@ -98,7 +98,7 @@ contract Curator {
         if (ce7Balance >= 2000 && ce7Balance < 10000) {
             curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 20, 3, 4, 10, now, 0, 0, 0);
         }
-        if (ce7Balance >= 1000 ) {
+        if (ce7Balance >= 10000 ) {
             curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 5, 5, 10000, now, 0, 0, 0);
         }
     }
