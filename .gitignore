@@ -10,4 +10,5 @@ gen
 .idea/
 node_modules/
 build/
+bin/
 test/
