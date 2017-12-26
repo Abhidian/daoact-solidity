@@ -18,7 +18,7 @@ module.exports = function(deployer) {
     };
     const propControl = async () => {
         try {
-            return ProposalController.new();        
+            return ProposalController.new();
         } catch (err) {
             console.log(err);
         }
@@ -52,21 +52,32 @@ module.exports = function(deployer) {
         }
     };
     const curator = async (token, reputation) => {
-       try {
-        return Curator.new();
-       } catch (err) {
-           console.log(err);
-       }
+        try {
+            return Curator.new();
+        } catch (err) {
+            console.log(err);
+        }
     };
     const migrate = async () => {
-       try {
-        let token = await ce7();
-        console.log(token.address);
-        let result = await curator();
-        console.log('Result address: ', result.address);
-       } catch (err) {
-           console.log(err);
-       }
+        try {
+            // let token = await ce7();
+            // console.log(token);
+            // let proposal = await  propControl();
+            // console.log(proposal);
+            // let quorumContr = await quorum();
+            // console.log(quorumContr);
+            // let reput = await reputation();
+            // console.log(reput);
+            // let voteContr = await vote(45000);
+            // console.log(voteContr);
+            // let curat = await curator("0x1", "0x5");
+            // console.log(curat);
+            let poolContr = await pool("0x45", "0x654", "0x984", '0x5', '0x6');
+            console.log(poolContr);
+
+        } catch (err) {
+            console.log(err);
+        }
     };
     migrate();
 };

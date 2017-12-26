@@ -51,11 +51,6 @@ contract Curator is Ownable{
     address public proposalController;  //ProposalController contract address
 
     function Curator(address _ce7Token, address _repGroup) public {
-        require(_ce7Token != address(0));
-        require(_repGroup != address(0));
-        ce7Token = Ce7(_ce7Token);
-        repGroup = ReputationGroup(_repGroup);
-
 
         // sum of reputation from all curators on the fullPlatformReputation
         fullPlatformReputation = 0;
@@ -69,11 +64,22 @@ contract Curator is Ownable{
         activationQuorumDowntick = 5;
     }
 
-    function setAddressPool (address _pool) public {
+    function setAddressPool(address _pool) public onlyOwner {
+        require(_pool != address(0));
         pool = Pool(_pool);
     }
 
-    function setProposalControllerAddress (address _proposalController) public {
+    function setCE7TokenAddress(address _ce7Token) public onlyOwner {
+        require(_ce7Token != address(0));
+        ce7Token = Ce7(_ce7Token);
+    }
+
+    function setReputationGroupAddress(address _repGroup) public onlyOwner {
+         require(_repGroup != address(0));
+         repGroup = ReputationGroup(_repGroup);
+    }
+
+    function setProposalControllerAddress (address _proposalController) public onlyOwner {
         require(_proposalController != address(0));
         proposalController = _proposalController;
     }

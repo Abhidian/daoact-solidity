@@ -87,7 +87,7 @@ contract ProposalController is Ownable {
         var proposalTimestamp = proposal.id();
         
         if (now > proposalTimestamp.add(curationPeriod)) {
-            if (quorumContract.checkСuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
+            if (quorumContract.checkCuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
                 require(proposal.setActivated());
                 require(proposal.setStatus(1));//set status "Voting"
             } else {
@@ -159,7 +159,7 @@ contract ProposalController is Ownable {
     }
 
     function getProposal(Proposal proposal) public view returns(uint, bytes32, bytes32, bytes32, bytes32, uint, uint, uint) {
-        return(
+        return (
             proposal.id(),
             proposal.title(),
             proposal.description(),
@@ -171,11 +171,15 @@ contract ProposalController is Ownable {
         );
     }
 
-    function getTicks(Proposal proposal) public view returns(uint, uint, uint) {
+    function getProposalInfo(Proposal proposal) public view returns(uint, uint, uint, bool, uint, uint, uint) {
         return (
             proposal.totalUpticks(),
             proposal.totalDownticks(),
-            proposal.flagsCount()
+            proposal.flagsCount(),
+            proposal.activated(),
+            proposal.funds(),
+            proposal.upVotes(),
+            proposal.downVotes()
         );
     }
 

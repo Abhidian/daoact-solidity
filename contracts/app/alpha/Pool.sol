@@ -30,23 +30,36 @@ contract Pool is Ownable {
 
     Transit public transit;
 
-    function Pool(address _proposalController, address _voteContract, address _curatorContract, address _foundation, address _daoact) public {
+    function Pool() public {
         owner = msg.sender;
-        require(_proposalController != address(0));
-        require(_voteContract != address(0));
-        require(_curatorContract != address(0));
-        proposalController = _proposalController;
-        voteContract = _voteContract;
-        foundation = _foundation;
-        daoact = _daoact;
         timestamp = now;
-
-        curatorContract = Curator(_curatorContract);
     }
-    ///??????????? address limitation ??????????????????
+ 
     function setQuorumContractAddress(address _quorum) public onlyOwner {
         require(_quorum != address(0));
         quorumContract = _quorum;
+    }
+
+    function setVoteContractAddress(address _voteContract) public onlyOwner {
+        require(_voteContract != address(0));
+        voteContract = _voteContract;
+    }
+
+    function setCuratorContractAddress(address _curatorContract) public onlyOwner {
+        require(_curatorContract != address(0));
+        curatorContract = Curator(_curatorContract);
+    }
+
+    function setProposalControllerAddress(address _proposalController) public onlyOwner {
+        require(_proposalController != address(0));
+        proposalController = _proposalController;
+    }
+
+    function setFoundationAndDaoactAddresses(address _foundation, address _daoact) public onlyOwner {
+        require(_foundation != address(0));
+        require(_daoact != address(0));
+        foundation = _foundation;
+        daoact = _daoact;
     }
 
     //payment for buying votes, dividing into 3 pools: for funding proposals, for paying curator's rewarding, paying for foundation
