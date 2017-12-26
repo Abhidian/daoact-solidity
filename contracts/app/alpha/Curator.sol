@@ -3,13 +3,11 @@ pragma solidity ^0.4.18;
 import '../../misc/SafeMath.sol';
 import '../../misc/Ownable.sol';
 
-contract Ce7 { function getBalance(address _curator) public view returns (uint);}
-contract ReputationGroup { function getGroupRate (uint _rep) public returns (uint);}
-contract Pool {
-    function getTransit() external returns(uint, uint);
-}
+contract Ce7 { function getBalance(address _curator) public view returns (uint); }
+contract ReputationGroup { function getGroupRate (uint _rep) public returns (uint); }
+contract Pool { function getTransit() external returns(uint, uint); }
 
-contract Curator is Ownable{
+contract Curator is Ownable {
 
     using SafeMath for *;
 
@@ -45,7 +43,7 @@ contract Curator is Ownable{
     uint noActivationNoQuorumUptick; //if proposal was not activated,not reached the quorum and curator uptick this proposal
     uint activationQuorumDowntick; //if proposal was activated, reached the quorum and curator downtick this proposal
 
-    mapping (address => CuratorInstance) curators;
+    mapping(address => CuratorInstance) curators;
     mapping(address => uint) balances;
 
     address public proposalController;  //ProposalController contract address

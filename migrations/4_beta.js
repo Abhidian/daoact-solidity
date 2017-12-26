@@ -70,10 +70,10 @@ module.exports = function(deployer) {
             // console.log(reput);
             // let voteContr = await vote(45000);
             // console.log(voteContr);
-            // let curat = await curator("0x1", "0x5");
+            // let curat = await curator();
             // console.log(curat);
-            let poolContr = await pool();
-            console.log(poolContr);
+            // let poolContr = await pool();
+            // console.log(poolContr);
 
         } catch (err) {
             console.log(err);
