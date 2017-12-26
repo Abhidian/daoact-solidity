@@ -13,22 +13,22 @@ contract Pool is Ownable {
 
     Curator curatorContract;
 
-    address private proposalController;
-    address private quorumContract;
-    address private voteContract;
-    address private foundation;
-    address private daoact;
-    uint private fundingPool;
-    uint private rewardingPool;
-    uint private foundationPool;
-    uint private timestamp;
+    address public proposalController;
+    address public quorumContract;
+    address public voteContract;
+    address public foundation;
+    address public daoact;
+    uint public fundingPool;
+    uint public rewardingPool;
+    uint public foundationPool;
+    uint public timestamp;
 
     struct Transit {
         uint timestamp;
         uint balance;
     }
 
-    Transit private transit;
+    Transit public transit;
 
     function Pool(address _proposalController, address _voteContract, address _curatorContract, address _foundation, address _daoact) public {
         owner = msg.sender;

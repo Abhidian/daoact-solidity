@@ -4,17 +4,17 @@ import "../../misc/SafeMath.sol";
 import '../../misc/Ownable.sol';
 
 contract Ce7 { function getBalance(address _curator) public view returns (uint);}
-contract ReputationGroupDividing { function getGroupRate (uint _rep) public returns (uint);}
+contract ReputationGroup { function getGroupRate (uint _rep) public returns (uint);}
 contract Pool {
     function getTransit() external returns(uint, uint);
 }
 
-contract Curator {
+contract Curator is Ownable{
 
     using SafeMath for *;
 
     Ce7 ce7Token;
-    ReputationGroupDividing repGroup;
+    ReputationGroup repGroup;
     Pool pool;
 
     uint fullPlatformReputation;
@@ -35,7 +35,6 @@ contract Curator {
     uint effortA;  //these effort groups is taken according to the number of tokens held every time when effort is calculating
     uint effortB;
     uint effortC;
-    uint platformEffort;
     }
 
     // rate of reputation, depends on was proposal activated or not, reached quorum or not and curator's reaction
@@ -55,7 +54,7 @@ contract Curator {
         require(_ce7Token != address(0));
         require(_repGroup != address(0));
         ce7Token = Ce7(_ce7Token);
-        repGroup = ReputationGroupDividing(_repGroup);
+        repGroup = ReputationGroup(_repGroup);
 
 
         // sum of reputation from all curators on the fullPlatformReputation
@@ -88,7 +87,10 @@ contract Curator {
     //create curator with 0 reputation, 0 rewarding and 1 reputation group
     function createCurator() public {
         var ce7Balance = ce7Token.getBalance(msg.sender);
-        if (ce7Balance < 1000 ) {
+        if (ce7Balance <= 0) {
+            revert();
+        }
+        if (ce7Balance >= 5 && ce7Balance < 1000 ) {
             curators[msg.sender] = CuratorInstance(true, 0, 0, 1, 30, 0, 0, 5, now, 0, 0, 0);
         }
         if (ce7Balance >= 1000 && ce7Balance < 2000) {

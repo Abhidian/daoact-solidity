@@ -69,7 +69,7 @@ contract Proposal is Ownable {
     //indicate curator action and allow to get reputation
     mapping(address => bool) reputationExisted;
 
-    function Proposal(address _submitter, address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
+    function Proposal(address _submitter, address _approver, uint _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public {
         require(_submitter != address(0));
         require(_approver != address(0));
         require(_approver != _submitter);
@@ -79,8 +79,10 @@ contract Proposal is Ownable {
         require(_value > 0);
         owner = msg.sender;
 
-        if (_activism == false) {
+        if (_activism == 2) {
             status = Status.directFunding;
+        } else if (_activism == 1) {
+            status = Status.curation;
         }
 
         controller = ProposalController(msg.sender);
@@ -92,7 +94,6 @@ contract Proposal is Ownable {
         videoLink = _videoLink;
         documentsLink = _documentsLink;
         value = _value.mul(1 ether);
-        status = Status.curation;
     }
 
     //modifiers
@@ -116,8 +117,10 @@ contract Proposal is Ownable {
         require(reactions[_curator].downtick == false);
         require(reactions[_curator].notActivism == false);
         if (_tick == 1) {
+            totalUpticks = totalUpticks.add(1);
             reactions[_curator].uptick = true;
         } else if (_tick == 2) {
+            totalDownticks = totalDownticks.add(1);
             reactions[_curator].downtick = true;
         } else if (_tick == 3) {
             reactions[_curator].flag = true;

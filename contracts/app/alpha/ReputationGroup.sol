@@ -5,7 +5,7 @@ import '../../misc/Ownable.sol';
 
 contract Curator { function getFullReputation () view public returns (uint) ; }
 
-contract ReputationGroupDividing {
+contract ReputationGroup is Ownable {
 
     using SafeMath for uint;
 

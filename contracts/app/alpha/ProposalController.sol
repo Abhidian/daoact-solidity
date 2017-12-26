@@ -14,7 +14,7 @@ contract Vote {
 
 contract Quorum {
     function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint);
-    function checkQuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool);
+    function checkCuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool);
 }
 
 contract Curator {
@@ -48,8 +48,9 @@ contract ProposalController is Ownable {
     function ProposalController() public payable {
         owner = msg.sender;
     }
-    
-    function creatProposal(address _approver, bool _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
+
+    //activizm - 1; not activizm - 2
+    function creatProposal(address _approver, uint _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
         if (_value <= 22) {
             require(msg.value == feeMin);
         } else {
@@ -86,7 +87,7 @@ contract ProposalController is Ownable {
         var proposalTimestamp = proposal.id();
         
         if (now > proposalTimestamp.add(curationPeriod)) {
-            if (quorumContract.checkQuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
+            if (quorumContract.checkСuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
                 require(proposal.setActivated());
                 require(proposal.setStatus(1));//set status "Voting"
             } else {
@@ -106,6 +107,7 @@ contract ProposalController is Ownable {
         require(curatorContract.limits(msg.sender, 5));
         var reputation = curatorContract.getReputation(msg.sender);
         var author = proposal.getCommentAuthor(_index);
+        require(author != msg.sender);
         curatorContract.calcEffort(reputation, author);
         proposal.uptickComment(_index, msg.sender);
     }
@@ -165,7 +167,7 @@ contract ProposalController is Ownable {
             proposal.documentsLink(),
             proposal.value(),
             proposal.commentsIndex(),
-            uint(proposal.status()),
+            uint(proposal.status())
         );
     }
 
