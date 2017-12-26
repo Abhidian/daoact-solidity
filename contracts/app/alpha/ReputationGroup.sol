@@ -24,8 +24,7 @@ contract ReputationGroup is Ownable {
 
 
     function getFullReputation () public view returns (uint) {
-        fullReputation = curator.getFullReputation();
-        return fullReputation;
+        return curator.getFullReputation();
     }
 
     //groupA = 1, bottom 5%
@@ -44,16 +43,16 @@ contract ReputationGroup is Ownable {
 
     //method is calling by Curator contract after each reputation calculation for curator and assign for curator
     //new reputation group according to the new reputation score
-    function getGroupRate (uint _rep) public returns (uint) {
+    function getGroupRate (uint _rep) public view returns (uint) {
         if (_rep <= groupA) {
             return 1;
         } if (_rep > groupA && _rep <= groupB) {
-        return 2;
-    } if (_rep > groupB && _rep <= groupC) {
-        return 3;
-    } if (_rep > groupC) {
-        return 4;
-    }
+            return 2;
+        } if (_rep > groupB && _rep <= groupC) {
+            return 3;
+        } if (_rep > groupC) {
+            return 4;
+        }
         return reputationRate;
     }
 

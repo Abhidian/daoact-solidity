@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import "../../misc/SafeMath.sol";
+import '../../misc/SafeMath.sol';
 import '../../misc/Ownable.sol';
 
 contract Ce7 { function getBalance(address _curator) public view returns (uint);}
@@ -50,7 +50,7 @@ contract Curator is Ownable{
 
     address public proposalController;  //ProposalController contract address
 
-    function Curator(address _ce7Token, address _repGroup) public {
+    function Curator() public {
 
         // sum of reputation from all curators on the fullPlatformReputation
         fullPlatformReputation = 0;

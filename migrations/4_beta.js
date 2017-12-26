@@ -1,7 +1,7 @@
 let ProposalController = artifacts.require('./ProposalController.sol');
 let Pool = artifacts.require('./Pool.sol');
 let Curator = artifacts.require('./Curator.sol');
-let ReputationGroup = artifacts.require('./ReputationGroupDividing.sol');
+let ReputationGroup = artifacts.require('./ReputationGroup.sol');
 let Quorum = artifacts.require('./Quorum.sol');
 let CE7mock = artifacts.require('./CE7mock.sol');
 let Vote = artifacts.require('./Vote.sol');
@@ -72,7 +72,7 @@ module.exports = function(deployer) {
             // console.log(voteContr);
             // let curat = await curator("0x1", "0x5");
             // console.log(curat);
-            let poolContr = await pool("0x45", "0x654", "0x984", '0x5', '0x6');
+            let poolContr = await pool();
             console.log(poolContr);
 
         } catch (err) {

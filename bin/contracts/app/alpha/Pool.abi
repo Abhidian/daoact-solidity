@@ -1,1 +1,0 @@
-[{"constant":false,"inputs":[],"name":"getTransit","outputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]
