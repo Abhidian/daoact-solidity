@@ -49,6 +49,7 @@ contract Curator is Ownable {
     address public proposalController;  //ProposalController contract address
 
     function Curator() public {
+        owner = msg.sender;
 
         // sum of reputation from all curators on the fullPlatformReputation
         fullPlatformReputation = 0;
