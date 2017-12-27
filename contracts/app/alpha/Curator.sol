@@ -239,7 +239,7 @@ contract Curator is Ownable {
     //proposal contract checks curator's limits for 24 hours once he made some action with proposal
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == comment, 5 == commentLike
     function limits(address _curator, uint8 _action) external onlyProposalControler returns (bool) {
-        if (now > (curators[_curator].timestampLimits + 24 hours)) {
+        if (now < (curators[_curator].timestampLimits + 24 hours)) {
             if (_action == 1 || _action == 2) {
                 if (curators[_curator].limitLike > 0) {
                     curators[_curator].limitLike = curators[_curator].limitLike.sub(1);
@@ -273,7 +273,7 @@ contract Curator is Ownable {
                 }
             }
         }
-        if (now < (curators[_curator].timestampLimits + 24 hours)) {
+        if (now >= (curators[_curator].timestampLimits + 24 hours)) {
             curators[_curator].timestampLimits = now;  //if timestamp is more then + 24 hours we set timestamp 'now'
             setLimits(_curator);     //and call function to refresh limits
             if (_action == 1 || _action == 2) { //then we need to subtract of limits exact action
