@@ -29,6 +29,7 @@ contract Proposal is Ownable {
         bool downtick;
         bool flag;
         bool notActivism;
+        bool reacted;
     }
 
     //proposal fields
@@ -116,6 +117,8 @@ contract Proposal is Ownable {
         require(reactions[_curator].uptick == false);
         require(reactions[_curator].downtick == false);
         require(reactions[_curator].notActivism == false);
+        require(reactions[_curator].reacted == false);
+        reactions[_curator].reacted = true;
         if (_tick == 1) {
             totalUpticks = totalUpticks.add(1);
             reactions[_curator].uptick = true;
@@ -252,9 +255,12 @@ contract Proposal is Ownable {
     }
 
     //getters
-
     function isVotedByCitizen(address _citizen) external view onlyController returns(bool) {
         return voted[_citizen];
+    }
+
+    function isTickedByCurator(address _curator) external view onlyController returns(bool) {
+        return reactions[_curator].reacted;
     }
 
     //save index of comment on middleware during get proccess!
@@ -269,13 +275,5 @@ contract Proposal is Ownable {
 
     function getCommentAuthor(uint _index) external view onlyController returns(address) {
         return comments[_index].author;
-    }
-
-    function getReaction(address _curator) external view onlyController returns(bool, bool, bool) {
-        return (
-            reactions[_curator].uptick,
-            reactions[_curator].downtick,
-            reactions[_curator].flag
-        );
     }
 }

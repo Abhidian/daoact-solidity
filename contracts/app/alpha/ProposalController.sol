@@ -187,11 +187,11 @@ contract ProposalController is Ownable {
         return proposal.getComment(_index);
     }
 
-    function getCuratorReaction(Proposal proposal, address _curator) public view returns(bool, bool, bool) {
-        return proposal.getReaction(_curator);
-    }
-
     function isVoted(Proposal proposal, address _citizen) public view returns(bool) {
         return proposal.isVotedByCitizen(_citizen);
+    }
+
+    function isTicked(Proposal proposal, address _curator) public view returns(bool) {
+        return proposal.isTicked(_curator);
     }
 }
