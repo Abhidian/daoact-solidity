@@ -190,4 +190,8 @@ contract ProposalController is Ownable {
     function getCuratorReaction(Proposal proposal, address _curator) public view returns(bool, bool, bool) {
         return proposal.getReaction(_curator);
     }
+
+    function isVoted(Proposal proposal, address _citizen) public view returns(bool) {
+        return proposal.isVotedByCitizen(_citizen);
+    }
 }

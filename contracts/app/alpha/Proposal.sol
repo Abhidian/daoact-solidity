@@ -253,6 +253,10 @@ contract Proposal is Ownable {
 
     //getters
 
+    isVotedByCitizen(address _citizen) external view onlyController returns(bool) {
+        return voted[_citizen];
+    }
+
     //save index of comment on middleware during get proccess!
     function getComment(uint _index) external view onlyController returns(address, uint, bytes32, uint) {
         return (
