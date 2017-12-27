@@ -242,7 +242,7 @@ contract Curator is Ownable {
         if (now > (curators[_curator].timestampLimits + 24 hours)) {
             if (_action == 1 || _action == 2) {
                 if (curators[_curator].limitLike > 0) {
-                    curators[_curator].limitLike - 1;
+                    curators[_curator].limitLike = curators[_curator].limitLike.sub(1);
                     return true;
                 } else {
                     return false;
@@ -250,7 +250,7 @@ contract Curator is Ownable {
             }
             if (_action == 3) {
                 if (curators[_curator].limitFlag > 0) {
-                    curators[_curator].limitLike - 1;
+                    curators[_curator].limitFlag = curators[_curator].limitFlag.sub(1);
                     return true;
                 } else {
                     return false;
@@ -258,7 +258,7 @@ contract Curator is Ownable {
             }
             if (_action == 4) {
                 if (curators[_curator].limitComment > 0) {
-                    curators[_curator].limitComment - 1;
+                    curators[_curator].limitComment = curators[_curator].limitComment.sub(1);
                     return true;
                 } else {
                     return false;
@@ -266,7 +266,7 @@ contract Curator is Ownable {
             }
             if (_action == 5) {
                 if (curators[_curator].limitLikeComment > 0) {
-                    curators[_curator].limitLikeComment - 1;
+                    curators[_curator].limitLikeComment = curators[_curator].limitLikeComment.sub(1);
                     return true;
                 } else {
                     return false;
@@ -278,7 +278,7 @@ contract Curator is Ownable {
             setLimits(_curator);     //and call function to refresh limits
             if (_action == 1 || _action == 2) { //then we need to subtract of limits exact action
                 if (curators[_curator].limitLike > 0) {
-                    curators[_curator].limitLike - 1;
+                    curators[_curator].limitLike = curators[_curator].limitLike.sub(1);
                     return true;
                 } else {
                     return false;
@@ -286,7 +286,7 @@ contract Curator is Ownable {
             }
             if (_action == 3) {
                 if (curators[_curator].limitFlag > 0) {
-                    curators[_curator].limitLike - 1;
+                    curators[_curator].limitFlag = curators[_curator].limitFlag.sub(1);
                     return true;
                 } else {
                     return false;
@@ -294,7 +294,7 @@ contract Curator is Ownable {
             }
             if (_action == 4) {
                 if (curators[_curator].limitComment > 0) {
-                    curators[_curator].limitComment - 1;
+                    curators[_curator].limitComment = curators[_curator].limitComment.sub(1);
                     return true;
                 } else {
                     return false;
@@ -302,7 +302,7 @@ contract Curator is Ownable {
             }
             if (_action == 5) {
                 if (curators[_curator].limitLikeComment > 0) {
-                    curators[_curator].limitLikeComment - 1;
+                    curators[_curator].limitLikeComment = curators[_curator].limitLikeComment.sub(1);
                     return true;
                 } else {
                     return false;
