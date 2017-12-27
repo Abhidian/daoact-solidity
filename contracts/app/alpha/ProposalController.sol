@@ -192,6 +192,6 @@ contract ProposalController is Ownable {
     }
 
     function isTicked(Proposal proposal, address _curator) public view returns(bool) {
-        return proposal.isTicked(_curator);
+        return proposal.isTickedByCurator(_curator);
     }
 }
