@@ -253,7 +253,7 @@ contract Proposal is Ownable {
 
     //getters
 
-    isVotedByCitizen(address _citizen) external view onlyController returns(bool) {
+    function isVotedByCitizen(address _citizen) external view onlyController returns(bool) {
         return voted[_citizen];
     }
 
