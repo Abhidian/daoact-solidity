@@ -4,7 +4,7 @@ import '../../misc/SafeMath.sol';
 import '../../misc/Ownable.sol';
 
 contract Pool {
-    function votesFunding() external payable;
+    function votesFunding() external payable returns(bool);
 }
 
 contract Vote is Ownable{
@@ -12,7 +12,7 @@ contract Vote is Ownable{
     using SafeMath for uint256;
 
     address private quorum;
-
+    Pool poolContract;
     address private proposalController;
 
     // sum of all funds that were used to buy ACT_VOTE tokens
@@ -30,7 +30,7 @@ contract Vote is Ownable{
     event ACTVoteSpent(address indexed voter,uint256 votes);
     event ACTVoteReturned(address indexed voter,uint256 votes);
 
-    function Vote(){
+    function Vote() public {
         owner = msg.sender;
         ethPrice = 850 * 100;
         votePrice = 1 ether / ethPrice;
@@ -50,13 +50,18 @@ contract Vote is Ownable{
         require(_newAddress != address(0));
         proposalController = _newAddress;
     }
+
+    function setPoolContract(address _poolAddress) public onlyOwner {
+        require(_poolAddress != address(0));
+        poolContract = Pool(_poolAddress);
+    }
     /**
      * Used for transfering votes from one account to another
      * @param _to Recepient adress
      * @param _value Number of votes to be transferred
      * @return bool True if transferred successfully
      */
-    function transfer(address _to, uint256 _value)returns (bool){
+    function transfer(address _to, uint256 _value) public returns (bool){
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
         ACTVoteTransfer(msg.sender, _to, _value);
@@ -66,16 +71,12 @@ contract Vote is Ownable{
     /**
      * Receive ethers and load ACT Votes to the account of sender
      */
-    function buyVotes() external payable{
+    function buyVotes() external payable {
         uint fromMsg = msg.value.div(votePrice);
         uint votes = fromMsg.div(100);
         balances[msg.sender] = balances[msg.sender].add(votes);
         fundsGiven = fundsGiven.add(msg.value);
-        if(quorum.send(msg.value)){
-            ACTVotePurchase(msg.sender,msg.value,votes);
-        }else{
-            revert();
-        }
+        require(poolContract.votesFunding.value(msg.value)());
     }
 
     /**
@@ -142,7 +143,7 @@ contract Vote is Ownable{
     }
 
     // Interface function
-    function isContract() external returns (bool){
+    function isContract() external pure returns (bool){
         return true;
     }
 

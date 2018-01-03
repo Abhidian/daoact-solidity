@@ -34,7 +34,7 @@ contract Pool is Ownable {
         owner = msg.sender;
         timestamp = now;
     }
- 
+
     function setQuorumContractAddress(address _quorum) public onlyOwner {
         require(_quorum != address(0));
         quorumContract = _quorum;
@@ -63,7 +63,7 @@ contract Pool is Ownable {
     }
 
     //payment for buying votes, dividing into 3 pools: for funding proposals, for paying curator's rewarding, paying for foundation
-    function votesFunding() external payable {
+    function votesFunding() external payable returns(bool) {
         require(msg.sender == voteContract);
         var funds = msg.value;
         var funding = funds.mul(80).div(100);
@@ -73,6 +73,7 @@ contract Pool is Ownable {
         fundingPool = fundingPool.add(funding);
         rewardingPool = rewardingPool.add(rewarding);
         foundationPool = foundationPool.add(foundationPart);
+        return true;
     }
 
     //accept direct funding for pool, with 5% for foundation
