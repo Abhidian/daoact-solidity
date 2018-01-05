@@ -40,6 +40,7 @@ contract Proposal is Ownable {
     bool public quorumReached; //is quorum rached
     bool public withdrawn; //withdraw indicator
     bool public pendingWithdraw; //indicate that submitter requested withdraw proccess
+    bool public activism; //indicate is proposal activism or not
     uint public flagsCount; //total flags count
     uint public notActivism; //total amount of non activism ticks
     uint32 public curationPeriod = 48 hours;
@@ -82,8 +83,10 @@ contract Proposal is Ownable {
 
         if (_activism == 2) {
             status = Status.directFunding;
+            activism = false;
         } else if (_activism == 1) {
             status = Status.curation;
+            activism = true;
         }
 
         controller = ProposalController(msg.sender);
@@ -135,6 +138,7 @@ contract Proposal is Ownable {
             reactions[_curator].notActivism == true;
             notActivism = notActivism.add(1);
             if (notActivism >= 5) {
+                activism = false;
                 status = Status.directFunding;
             }
         } else {

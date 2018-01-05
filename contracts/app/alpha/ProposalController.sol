@@ -43,6 +43,7 @@ contract ProposalController is Ownable {
     uint public votingPeriod = 48 hours;
 
     event NewProposal(address indexed _proposal);
+    event NewProposalForVoting(address indexed _proposal);
     event VoteCasted(address indexed _proposal, address indexed _voter, uint indexed _vote);
 
     function ProposalController() public payable {
@@ -90,6 +91,7 @@ contract ProposalController is Ownable {
             if (quorumContract.checkCuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
                 require(proposal.setActivated());
                 require(proposal.setStatus(1));//set status "Voting"
+                NewProposalForVoting(proposal);
             } else {
                 require(proposal.setStatus(3));//set status "Closed"
             }
@@ -171,7 +173,7 @@ contract ProposalController is Ownable {
         );
     }
 
-    function getProposalInfo(Proposal proposal) public view returns(uint, uint, uint, bool, uint, uint, uint) {
+    function getProposalInfo(Proposal proposal) public view returns(uint, uint, uint, bool, uint, uint, uint, bool) {
         return (
             proposal.totalUpticks(),
             proposal.totalDownticks(),
@@ -179,7 +181,8 @@ contract ProposalController is Ownable {
             proposal.activated(),
             proposal.funds(),
             proposal.upVotes(),
-            proposal.downVotes()
+            proposal.downVotes(),
+            proposal.activism()
         );
     }
 
