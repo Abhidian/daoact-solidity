@@ -357,4 +357,7 @@ contract Curator is Ownable {
     //     curators[_curator].limitLikeComment
     //     );
     // }
+    function checkExistence(address _curator) public view returns(bool) {
+        return curators[_curator].exist;
+    }
 }
