@@ -1,9 +1,17 @@
+/**
+ *  MultiSig.sol v1.1.0
+ * 
+ *  Bilal Arif - https://twitter.com/furusiyya_
+ *  Draglet GbmH
+ */
+
 pragma solidity 0.4.18;
 
 import "../misc/SafeMath.sol";
+import '../misc/ReentrancyGuard.sol';
 
 /**
- * PreICO is designed to hold funds of pre ico. Account is controlled by four administratos. To trigger a payout
+ * MultiSig is designed to hold funds of the ico. Account is controlled by four administratos. To trigger a payout
  * three out of four administrators will must agree on same amount of ethers to be transferred. During the signing
  * process if one administrator sends different targetted address or amount of ethers, process will abort and they
  * need to start again.
@@ -12,7 +20,7 @@ import "../misc/SafeMath.sol";
  * sends different address the updating process will abort and they need to start again. 
  */
 
-contract PreICO{
+contract MultiSig is ReentrancyGuard{
   
   using SafeMath for uint256;
   
@@ -82,7 +90,7 @@ contract PreICO{
    * @param recipient The address of recipient
    * @param amount Amount of wei to be transferred
    */
-  function transfer(address recipient, uint256 amount) external onlyAdmin {
+  function transfer(address recipient, uint256 amount) external onlyAdmin nonReentrant {
     
     // input validations
     require( recipient != 0x00 );

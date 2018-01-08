@@ -1,3 +1,10 @@
+/**
+ *  ForecasterReward.sol v1.1.0
+ * 
+ *  Bilal Arif - https://twitter.com/furusiyya_
+ *  Draglet GbmH
+ */
+
 pragma solidity 0.4.18;
 
 import '../misc/Haltable.sol';
@@ -22,11 +29,8 @@ contract ForecasterReward is Haltable {
   /* How many total investments have been made */
   uint private totalInvestments = 0;
   
-  /* Address of forecasters contract*/
-  address private forecasters;
-  
   /* Address of pre-ico contract*/
-  address private preICOContract;
+  address private multisig;
  
 
   /** How much ETH each address has invested to this crowdsale */
@@ -53,20 +57,17 @@ contract ForecasterReward is Haltable {
   function ForecasterReward(
       address frOwner,
       uint startTimestamp, 
-      uint endTimestamp, 
-      address forecastersAddr, 
-      address preICOContractAddr) public
+      uint endTimestamp,
+      address multisigAddr) public
   {
     
     require(frOwner != 0x00);
-    require(forecastersAddr != 0x00);
-    require(preICOContractAddr != 0);
+    require(multisigAddr != 0);
     require(startTimestamp >= now); 
     require(endTimestamp  >= startTimestamp); 
 
     owner = frOwner;
-    forecasters = forecastersAddr;
-    preICOContract = preICOContractAddr;
+    multisig = multisigAddr;
     
     startsAt = startTimestamp;
     endsAt = endTimestamp;
@@ -114,18 +115,12 @@ contract ForecasterReward is Haltable {
     Invested(totalInvestments, receiver, weiAmount);
   }
 
+ 
   /**
-   * @return forecasters Address of forecaster reward contract
+   * @return multisig Address of Multisig Wallet contract
    */
-  function forecastersAddress() public constant returns(address){
-      return forecasters;
-  }
-  
-  /**
-   * @return preICO Address of PreICO Wallet contract
-   */
-  function preICOAddress() public constant returns(address){
-      return preICOContract;
+  function multisigAddress() public constant returns(address){
+      return multisig;
   }
   
   /**
@@ -161,23 +156,13 @@ contract ForecasterReward is Haltable {
    * Send out contributions imediately
    */
   function distributeFunds() private returns(bool){
-   
-    // calculate 5% of forecasters  
-    uint forecasterReward = this.balance.div(20);
-    
-    if (!forecasters.send(forecasterReward)){
-      return false;
-    }
-    
-    Transfer(forecasters,forecasterReward);
         
-    uint remaining = this.balance;
+    Transfer(multisig,this.balance);
     
-    if(!preICOContract.send(this.balance)){
+    if(!multisig.send(this.balance)){
       return false;
     }
     
-    Transfer(preICOContract,remaining);
     return true;
   }
   
