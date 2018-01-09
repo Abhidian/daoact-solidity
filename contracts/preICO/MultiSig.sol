@@ -62,7 +62,7 @@ contract MultiSig is ReentrancyGuard{
   event EventUpdateWasReset();
   
   
-  function PreICO(address admin1,address admin2,address admin3,address admin4) public {
+  function MultiSig(address admin1,address admin2,address admin3,address admin4) public {
 
       require(admin1 != 0);
       require(admin2 != 0);
