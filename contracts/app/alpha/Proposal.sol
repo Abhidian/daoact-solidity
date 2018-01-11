@@ -43,9 +43,6 @@ contract Proposal is Ownable {
     bool public activism; //indicate is proposal activism or not
     uint public flagsCount; //total flags count
     uint public notActivism; //total amount of non activism ticks
-    uint32 public curationPeriod = 48 hours;
-    uint32 public votingPeriod = 48 hours;
-    uint32 public directFundingPeriod = 72 hours;
     uint public totalUpticks; //total proposal upticks from curators
     uint public totalDownticks; //total proposal downticks from curators
 

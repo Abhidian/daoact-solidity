@@ -41,6 +41,7 @@ contract ProposalController is Ownable {
     uint public feeMax = 0.4 ether;
     uint public curationPeriod = 48 hours;
     uint public votingPeriod = 48 hours;
+    uint public directFundingPeriod = 72 hours;
 
     event NewProposal(address indexed _proposal);
     event NewProposalForVoting(address indexed _proposal);
@@ -130,6 +131,9 @@ contract ProposalController is Ownable {
                 } else {
                     require(proposal.setStatus(3));//set status "Closed"
                 }
+            } else {
+                //close proposal in case of quorum not reached
+                require(proposal.setStatus(3));//set status "Closed"
             }
         }
         VoteCasted(proposal, msg.sender, _vote);
@@ -139,6 +143,9 @@ contract ProposalController is Ownable {
     //TEST HARDLY!!!!
     function directFunding(Proposal proposal) public payable {
         proposal.fundProposal.value(msg.value)();
+        if (now > proposalTimestamp.add(curationPeriod).add(votingPeriod).add(directFundingPeriod)) {
+            require(proposal.setStatus(3));//set status "Closed"
+        }
     }
 
     //request funds by submitter
