@@ -144,7 +144,7 @@ contract ProposalController is Ownable {
     function directFunding(Proposal proposal) public payable {
         proposal.fundProposal.value(msg.value)();
         if (now > proposalTimestamp.add(curationPeriod).add(votingPeriod).add(directFundingPeriod)) {
-            require(proposal.setStatus(3));//set status "Closed"
+            require(proposal.setStatus(3));d//set status "Closed"
         }
     }
 
