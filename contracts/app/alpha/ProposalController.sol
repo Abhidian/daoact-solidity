@@ -6,6 +6,7 @@ import '../../misc/SafeMath.sol';
 
 contract Pool {
     function submitionFunding() external payable returns(bool);
+    function fromProposalDirectFunding() external payable returns(bool);
 }
 
 contract Vote {
@@ -142,9 +143,14 @@ contract ProposalController is Ownable {
     //proposal direct funding
     //TEST HARDLY!!!!
     function directFunding(Proposal proposal) public payable {
-        proposal.fundProposal.value(msg.value)();
+        require(msg.value > 0);
+        var proposalPart = funds.mul(95).div(100);
+        var foundationPart = funds.mul(5).div(100);
+        require(proposal.fundProposal.value(proposalPart)());
+        require(pool.fromProposalDirectFunding.value(foundationPart));
+        if ()
         if (now > proposalTimestamp.add(curationPeriod).add(votingPeriod).add(directFundingPeriod)) {
-            require(proposal.setStatus(3));d//set status "Closed"
+            require(proposal.setStatus(3));//set status "Closed"
         }
     }
 

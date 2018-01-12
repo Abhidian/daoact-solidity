@@ -217,14 +217,23 @@ contract Proposal is Ownable {
     }
 
     //direct funding
-    function fundProposal() external payable onlyController checkStatus(Status.directFunding) {
+    function fundProposal() external payable onlyController checkStatus(Status.directFunding) returns(bool) {
         require(msg.value > 0);
         require(status == Status.directFunding);
         funds = funds.add(msg.value);
 
+        if (activism == false && now > timestamp.add(72 hours)) {
+            status = Status.closed;
+        }
+
+        if (activism == true && now > timestamp.add(168 hours)) {
+            status = Status.closed;
+        }
+
         if (funds >= value) {
             status = Status.closed;
         }
+        return true;
     }
 
     //submitter funds request

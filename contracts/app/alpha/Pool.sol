@@ -76,13 +76,16 @@ contract Pool is Ownable {
         return true;
     }
 
-    //accept direct funding for pool, with 5% for foundation
+    //accept direct funding for pool
     function directFunding() public payable {
-        var funds = msg.value;
-        var funding = funds.mul(95).div(100);
-        var foundationPart = funds.mul(5).div(100);
-        fundingPool = fundingPool.add(funding);
-        foundationPool = foundationPool.add(foundationPart);
+        require(msg.value > 0);
+        fundingPool = fundingPool.add(msg.value);
+    }
+
+    function fromProposalDirectFunding() external payable returns(bool) {
+        require(msg.value > 0);
+        require(msg.sender == proposalController);
+        foundationPool = foundationPool.add(msg.value);
     }
 
     //accept payment submission fee for paying curator's rewarding
