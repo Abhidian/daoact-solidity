@@ -34,7 +34,7 @@ contract ProposalController is Ownable {
     Vote voteContract;
     Curator curatorContract;
     Quorum quorumContract;
-    
+
     //proposals storage
     address[] proposals;
 
@@ -88,7 +88,7 @@ contract ProposalController is Ownable {
         require(curatorContract.limits(msg.sender, _tick));
         require(proposal.tick(msg.sender, _tick));
         var proposalTimestamp = proposal.id();
-        
+
         if (now > proposalTimestamp.add(curationPeriod)) {
             if (quorumContract.checkCuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
                 require(proposal.setActivated());
@@ -144,14 +144,11 @@ contract ProposalController is Ownable {
     //TEST HARDLY!!!!
     function directFunding(Proposal proposal) public payable {
         require(msg.value > 0);
+        var funds = msg.value;
         var proposalPart = funds.mul(95).div(100);
         var foundationPart = funds.mul(5).div(100);
         require(proposal.fundProposal.value(proposalPart)());
-        require(pool.fromProposalDirectFunding.value(foundationPart));
-        if ()
-        if (now > proposalTimestamp.add(curationPeriod).add(votingPeriod).add(directFundingPeriod)) {
-            require(proposal.setStatus(3));//set status "Closed"
-        }
+        require(poolContract.fromProposalDirectFunding.value(foundationPart)());
     }
 
     //request funds by submitter

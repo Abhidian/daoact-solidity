@@ -222,11 +222,11 @@ contract Proposal is Ownable {
         require(status == Status.directFunding);
         funds = funds.add(msg.value);
 
-        if (activism == false && now > timestamp.add(72 hours)) {
+        if (activism == false && now > id.add(72 hours)) {
             status = Status.closed;
         }
 
-        if (activism == true && now > timestamp.add(168 hours)) {
+        if (activism == true && now > id.add(168 hours)) {
             status = Status.closed;
         }
 
