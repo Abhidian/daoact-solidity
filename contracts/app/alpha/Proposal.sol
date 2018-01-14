@@ -185,7 +185,7 @@ contract Proposal {
     //should save index on middleware during get proccess in order to request exact comment!
     function uptickComment(uint _index, address _curator) external onlyController checkStatus(Status.curation) {
         require(comments[_index].upticked[_curator] == false);
-        comments[_index].upticked[_curator] == true;
+        comments[_index].upticked[_curator] = true;
         comments[_index].totalUpticks = comments[_index].totalUpticks.add(1);
     }
 
