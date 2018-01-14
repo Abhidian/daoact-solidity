@@ -4,11 +4,9 @@ import '../../misc/SafeMath.sol';
 import './ProposalController.sol';
 import '../../misc/Ownable.sol';
 
-contract Proposal is Ownable {
+contract Proposal {
 
     using SafeMath for *;
-
-    ProposalController controller;
 
     //proposal status
     enum Status { curation, voting, directFunding, closed }
@@ -76,7 +74,6 @@ contract Proposal is Ownable {
         require(_description.length > 0);
         require(_videoLink.length > 0);
         require(_value > 0);
-        owner = msg.sender;
 
         if (_activism == 2) {
             status = Status.directFunding;
@@ -86,7 +83,6 @@ contract Proposal is Ownable {
             activism = true;
         }
 
-        controller = ProposalController(msg.sender);
         controllerAddress = msg.sender;
         submitter = _submitter;
         id = now;
@@ -185,7 +181,6 @@ contract Proposal is Ownable {
     }
 
     //curators upticks for comments
-    //should send 1 to uptick, another values not allowed
     //request should include index of comment
     //should save index on middleware during get proccess in order to request exact comment!
     function uptickComment(uint _index, address _curator) external onlyController checkStatus(Status.curation) {
@@ -198,7 +193,7 @@ contract Proposal is Ownable {
 
     //citizen votes
     // 1 == vote up, 2 == vote down
-    function vote(address _voter, uint _vote) external onlyController checkStatus(Status.voting) returns(bool) {
+    function vote(address _voter, uint8 _vote) external onlyController checkStatus(Status.voting) returns(bool) {
 
         require(voted[_voter] == false);
         voted[_voter] = true;
@@ -274,12 +269,13 @@ contract Proposal is Ownable {
     }
 
     //save index of comment on middleware during get proccess!
-    function getComment(uint _index) external view onlyController returns(address, uint, bytes32, uint) {
+    function getComment(uint _index, address _curator) external view onlyController returns(address, uint, bytes32, uint, bool) {
         return (
             comments[_index].author,
             comments[_index].timestamp,
             comments[_index].text,
-            comments[_index].totalUpticks
+            comments[_index].totalUpticks,
+            comments[_index].upticked[_curator]
         );
     }
 

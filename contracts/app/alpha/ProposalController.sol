@@ -1,8 +1,6 @@
 pragma solidity ^0.4.18;
 
 import './Proposal.sol';
-import '../../misc/Ownable.sol';
-import '../../misc/SafeMath.sol';
 
 contract Pool {
     function submitionFunding() external payable returns(bool);
@@ -38,18 +36,13 @@ contract ProposalController is Ownable {
     //proposals storage
     address[] proposals;
 
-    uint public feeMin = 0.1 ether;
-    uint public feeMax = 0.4 ether;
-    uint public curationPeriod = 48 hours;
-    uint public votingPeriod = 48 hours;
-    uint public directFundingPeriod = 72 hours;
+    uint128 public feeMin = 0.1 ether;
+    uint128 public feeMax = 0.4 ether;
 
-    event NewProposal(address indexed _proposal);
     event NewProposalForVoting(address indexed _proposal);
-    event VoteCasted(address indexed _proposal, address indexed _voter, uint indexed _vote);
 
     function ProposalController() public payable {
-        owner = msg.sender;
+        owner = 0x2D800c755BfC1a9b4715207d15e1838b26A1a9aD;
     }
 
     //activizm - 1; not activizm - 2
@@ -62,24 +55,14 @@ contract ProposalController is Ownable {
         require(poolContract.submitionFunding.value(msg.value)());
         proposal = new Proposal(msg.sender, _approver, _activism, _title, _description, _videoLink, _documentsLink, _value);
         proposals.push(proposal);
-        NewProposal(proposal);
         return proposal;
     }
 
-    function setVoteContractAddress(address _address) public onlyOwner {
-        voteContract = Vote(_address);
-    }
-
-    function setPoolContractAddress(address _address) public onlyOwner {
-        poolContract = Pool(_address);
-    }
-
-    function setCuratorContractAddress(address _address) public onlyOwner {
-        curatorContract = Curator(_address);
-    }
-
-    function setQuorumContractAddress(address _address) public onlyOwner {
-        quorumContract = Quorum(_address);
+    function setDependencies(address _vote, address _pool, address _curator, address _quorum) public onlyOwner {
+        voteContract = Vote(_vote);
+        poolContract = Pool(_pool);
+        curatorContract = Curator(_curator);
+        quorumContract = Quorum(_quorum);
     }
 
     //tick proposal by curator
@@ -89,7 +72,7 @@ contract ProposalController is Ownable {
         require(proposal.tick(msg.sender, _tick));
         var proposalTimestamp = proposal.id();
 
-        if (now > proposalTimestamp.add(curationPeriod)) {
+        if (now > proposalTimestamp.add(48 hours)) {
             if (quorumContract.checkCuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
                 require(proposal.setActivated());
                 require(proposal.setStatus(1));//set status "Voting"
@@ -118,11 +101,11 @@ contract ProposalController is Ownable {
 
     //citizen vote
     //1 == vote up, 2 == vote down
-    function citizenVote(Proposal proposal, uint _vote) public {
+    function citizenVote(Proposal proposal, uint8 _vote) public {
         require(proposal.vote(msg.sender, _vote));
         require(voteContract.withdraw(msg.sender));
         var proposalTimestamp = proposal.id();
-        if (now > proposalTimestamp.add(curationPeriod).add(votingPeriod)) {
+        if (now > proposalTimestamp.add(48 hours).add(48 hours)) {
             var (reached, funds) =  quorumContract.checkCitizenQuorum(proposal.upVotes(), proposal.downVotes(), proposal, proposal.value());
             if (reached == true) {
                 require(proposal.setQuorumReached());
@@ -137,7 +120,6 @@ contract ProposalController is Ownable {
                 require(proposal.setStatus(3));//set status "Closed"
             }
         }
-        VoteCasted(proposal, msg.sender, _vote);
     }
 
     //proposal direct funding
@@ -152,7 +134,7 @@ contract ProposalController is Ownable {
     }
 
     //request funds by submitter
-    //two signature required! First request must be only from submitter address 
+    //two signature required! First request must be only from submitter address
     //and second - only from approver address!
     function withdrawProposal(Proposal proposal) public {
         proposal.wirthdrawFunds(msg.sender);
@@ -196,8 +178,8 @@ contract ProposalController is Ownable {
         );
     }
 
-    function getComment(Proposal proposal, uint _index) public view returns(address, uint, bytes32, uint) {
-        return proposal.getComment(_index);
+    function getComment(Proposal proposal, uint _index, address _curator) public view returns(address, uint, bytes32, uint, bool) {
+        return proposal.getComment(_index, _curator);
     }
 
     function isVoted(Proposal proposal, address _citizen) public view returns(bool) {
