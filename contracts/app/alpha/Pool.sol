@@ -86,6 +86,7 @@ contract Pool is Ownable {
         require(msg.value > 0);
         require(msg.sender == proposalController);
         foundationPool = foundationPool.add(msg.value);
+        return true;
     }
 
     //accept payment submission fee for paying curator's rewarding
