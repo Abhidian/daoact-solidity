@@ -119,11 +119,11 @@ contract Vote is Ownable{
         return true;
     }
 
-    function deposit(address _to,uint256 _value) onlyProposalController external  returns(bool){
-        require(_to != 0x00);
-        require(_value > 0);
-        balances[_to] = balances[_to].add(_value);
-        ACTVoteReturned(_to, _value);
+    function withdraw(address _from) external onlyProposalController returns(bool){
+        require(_from != address(0));
+        require(balances[_from] > 0);
+        balances[_from] = balances[_from].sub(1);
+        ACTVoteSpent(_from, 1);
         return true;
     }
 
