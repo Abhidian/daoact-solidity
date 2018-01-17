@@ -11,9 +11,9 @@ contract Vote is Ownable{
 
     using SafeMath for uint256;
 
-    address private quorum;
+    address public quorum;
     Pool poolContract;
-    address private proposalController;
+    address public proposalController;
 
     // sum of all funds that were used to buy ACT_VOTE tokens
     uint256 private fundsGiven;
@@ -102,34 +102,6 @@ contract Vote is Ownable{
      */
     function setEthPrice(uint256 _value)  external onlyOwner  returns (bool){
         ethPrice = _value;
-        return true;
-    }
-
-    /**
-     * Returns Address of Quorum Platform Contract
-     * @return address
-     */
-    function quorumAddress() constant external returns (address){
-        return quorum;
-    }
-
-    /**
-     * Used to update Address of Quorum Platform Contract in case it is updated
-     * @param _newAddress updated contract address
-     * @return true if successful
-     */
-    function updateQuorumAddress(address _newAddress)  external onlyOwner returns (bool){
-        quorum = _newAddress;
-        return true;
-    }
-
-    /**
-     * Used to update Address of Proposal Contract in case it is updated
-     * @param _newAddress updated contract address
-     * @return true if successful
-     */
-    function updateProposalControllerAddress(address _newAddress) external onlyOwner returns (bool) {
-        proposalController = _newAddress;
         return true;
     }
 
