@@ -110,8 +110,8 @@ contract Curator is Ownable {
     }
 
     //getter for Pool contract to extract curator's rewarding for payment (curator is going to click the button and get rewarding every 30 days)
-    function getCuratorRewarding() public view returns (uint) {
-        return curators[msg.sender].rewarding;
+    function getCuratorRewarding(address _curator) public view returns (uint) {
+        return curators[_curator].rewarding;
     }
 
     //getter for ReputationGroup contract to divide curators for different reputation group
