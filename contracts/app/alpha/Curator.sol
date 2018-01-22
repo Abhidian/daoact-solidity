@@ -109,7 +109,7 @@ contract Curator is Ownable {
         }
     }
 
-    //getter for Pool contract to extract curator's rewarding for payment (curator is going to click the button and get rewarding every 30 days)
+    //getter for Pool contract to extract curator's rewarding for payment (curator is going to click the button and gget rewarding every 30 days)
     function getCuratorRewarding(address _curator) public view returns (uint) {
         return curators[_curator].rewarding;
     }
@@ -231,11 +231,6 @@ contract Curator is Ownable {
         curators[_curator].reputationGroup = repGroup.getGroupRate(curators[_curator].reputation);
     }
 
-    //getter to get reputation group for exact curator
-    //function getCuratorGroup(address _curator) public view returns (uint) {
-    //   return curators[_curator].reputationGroup;
-    //}
-
     //proposal contract checks curator's limits for 24 hours once he made some action with proposal
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == comment, 5 == commentLike
     function limits(address _curator, uint8 _action) external onlyProposalControler returns (bool) {
@@ -348,16 +343,18 @@ contract Curator is Ownable {
             curators[_curator].timestampLimits = now;
         }
     }
-    // function getLimits (address _curator) public returns (uint,uint,uint,uint) {
-    //     require(curators[_curator].exist == true);
-    //     return ( 
-    //     curators[_curator].limitLike,
-    //     curators[_curator].limitFlag,
-    //     curators[_curator].limitComment,
-    //     curators[_curator].limitLikeComment
-    //     );
-    // }
-    function checkExistence(address _curator) public view returns(bool) {
+
+     function getLimits (address _curator) public returns (uint,uint,uint,uint) {
+         require(curators[_curator].exist == true);
+         return (
+         curators[_curator].limitLike,
+         curators[_curator].limitFlag,
+         curators[_curator].limitComment,
+         curators[_curator].limitLikeComment
+         );
+     }
+
+     function checkExistence(address _curator) public view returns(bool) {
         return curators[_curator].exist;
     }
 }
