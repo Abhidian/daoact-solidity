@@ -98,10 +98,10 @@ contract Pool is Ownable {
 
     // get transit balance and timestamp
     function getTransit() external returns(uint, uint) {
-        if (transit.timestamp != 0 && now < transit.timestamp + 30 days) {
+        if (transit.timestamp != 0 && now < transit.timestamp + 1 days) {
             return (transit.balance, transit.timestamp);
         }
-        if (transit.timestamp == 0 || now >= transit.timestamp + 30 days) {
+        if (transit.timestamp == 0 || now >= transit.timestamp + 1 days) {
             timestamp = now;
             transit.timestamp = now;
             transit.balance = rewardingPool;
