@@ -134,7 +134,4 @@ contract Vote is Ownable{
         ACTVoteSpent(_from, 1);
         return true;
     }
-
-
-
 }
