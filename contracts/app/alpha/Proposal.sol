@@ -1,7 +1,6 @@
 pragma solidity ^0.4.18;
 
 import '../../misc/SafeMath.sol';
-import './ProposalController.sol';
 import '../../misc/Ownable.sol';
 
 contract Proposal {
@@ -170,6 +169,7 @@ contract Proposal {
     function setFunds(uint _funds) external onlyController returns(bool) {
         require(funds == 0);
         funds = _funds;
+        return true;
     }
 
     //curators comments
