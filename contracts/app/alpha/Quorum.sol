@@ -9,7 +9,7 @@ contract Quorum is Ownable {
 
     using SafeMath for *;
 
-    Pool poolContract;
+    Pool public poolContract;
 
     function Quorum() public {
         owner = msg.sender;
@@ -30,7 +30,7 @@ contract Quorum is Ownable {
         }
     }
 
-    function checkCuratorsQuorum(uint _upTicks, uint _downTicks) external returns(bool) {
+    function checkCuratorsQuorum(uint _upTicks, uint _downTicks) external pure returns(bool) {
         var allTicks = _upTicks.add(_downTicks);
         var curatorsQuorum = uint(_upTicks).mul(uint(100)).div(uint(allTicks));
         if (curatorsQuorum >= 70) {
