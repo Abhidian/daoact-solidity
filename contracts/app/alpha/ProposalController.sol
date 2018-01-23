@@ -41,8 +41,8 @@ contract ProposalController is Ownable {
 
     event NewProposalForVoting(address indexed _proposal);
 
-    function ProposalController() public payable {
-        owner = 0x2D800c755BfC1a9b4715207d15e1838b26A1a9aD;
+    function ProposalController() public {
+        owner = msg.sender;
     }
 
     //activizm - 1; not activizm - 2
