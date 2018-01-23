@@ -98,10 +98,10 @@ contract Pool is Ownable {
 
     // get transit balance and timestamp
     function getTransit() external returns(uint, uint) {
-        if (transit.timestamp != 0 && now < transit.timestamp + 30 days) {
+        if (transit.timestamp != 0 && now < transit.timestamp + 1 days) {
             return (transit.balance, transit.timestamp);
         }
-        if (transit.timestamp == 0 || now >= transit.timestamp + 30 days) {
+        if (transit.timestamp == 0 || now >= transit.timestamp + 1 days) {
             timestamp = now;
             transit.timestamp = now;
             transit.balance = rewardingPool;
@@ -122,19 +122,10 @@ contract Pool is Ownable {
         require(msg.sender == quorumContract);
         var allowed = fundingPool.mul(10).div(100);
         if (_value * 1 ether <= allowed) {
-            _proposal.transfer(_value * 1 ether);
+            _proposal.send(_value * 1 ether);
             return _value;
         } else {
-            _proposal.transfer(allowed);
+            _proposal.send(allowed);
             return allowed;
         }
     }
-
-    function foundationFee() public {
-        require(now > timestamp.add(30 days));
-        require(msg.sender == foundation);
-        var half = foundationPool.div(2);
-        foundation.transfer(half);
-        daoact.transfer(half);
-    }
-}

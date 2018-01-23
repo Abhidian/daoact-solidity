@@ -72,7 +72,7 @@ contract ProposalController is Ownable {
         require(proposal.tick(msg.sender, _tick));
         var proposalTimestamp = proposal.id();
 
-        if (now > proposalTimestamp.add(48 hours)) {
+        if (now > proposalTimestamp.add(1 minutes)) {
             if (quorumContract.checkCuratorsQuorum(proposal.totalUpticks(), proposal.totalDownticks())) {
                 require(proposal.setActivated());
                 require(proposal.setStatus(1));//set status "Voting"
@@ -101,12 +101,12 @@ contract ProposalController is Ownable {
 
     //citizen vote
     //1 == vote up, 2 == vote down
-    function citizenVote(Proposal proposal, address _proposal, uint8 _vote) public {
+    function citizenVote(Proposal proposal, uint8 _vote) public {
         require(proposal.vote(msg.sender, _vote));
         require(voteContract.withdraw(msg.sender));
         var proposalTimestamp = proposal.id();
-        if (now > proposalTimestamp.add(48 hours).add(48 hours)) {
-            var (reached, funds) = quorumContract.checkCitizenQuorum(proposal.upVotes(), proposal.downVotes(), _proposal, proposal.value());
+        if (now > proposalTimestamp.add(1 minutes).add(1 minutes)) {
+            var (reached, funds) =  quorumContract.checkCitizenQuorum(proposal.upVotes(), proposal.downVotes(), proposal, proposal.value());
             if (reached == true) {
                 require(proposal.setQuorumReached());
                 require(proposal.setFunds(funds));
