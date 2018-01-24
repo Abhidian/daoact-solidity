@@ -123,11 +123,11 @@ contract Pool is Ownable {
         var allowed = fundingPool.mul(10).div(100);
         if (_value * 1 ether <= allowed) {
             fundingPool = fundingPool.sub(_value * 1 ether);
-            _proposal.send(_value * 1 ether);
+            _proposal.transfer(_value * 1 ether);
             return _value;
         } else {
             fundingPool = fundingPool.sub(allowed);
-            _proposal.send(allowed);
+            _proposal.transfer(allowed);
             return allowed;
         }
     }

@@ -282,4 +282,6 @@ contract Proposal {
     function getCommentAuthor(uint _index) external view onlyController returns(address) {
         return comments[_index].author;
     }
+
+    function() public payable {}
 }
