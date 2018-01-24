@@ -10,16 +10,26 @@ contract Quorum is Ownable {
     using SafeMath for *;
 
     Pool public poolContract;
+    address public proposalContract;
 
     function Quorum() public {
         owner = msg.sender;
     }
 
-    function setPoolAddress (address _poolContract) public {
+    function setPoolAddress (address _poolContract) public onlyOwner {
         poolContract = Pool(_poolContract);
     }
 
-    function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external returns(bool, uint) {
+    function setProposalContract(address _proposalContract) public onlyOwner {
+        proposalContract = _proposalContract;
+    }
+
+    modifier onlyProposalContract() {
+        require(msg.sender == proposalContract);
+        _;
+    }
+
+    function checkCitizenQuorum(uint _upVotes, uint _downVotes, address _proposal, uint _value) external onlyProposalContract returns(bool, uint) {
         var allVotes = _upVotes.add(_downVotes);
         var citizensQuorum = uint(_upVotes).mul(uint(100)).div(uint(allVotes));
         if (citizensQuorum >= 60) {
@@ -30,7 +40,7 @@ contract Quorum is Ownable {
         }
     }
 
-    function checkCuratorsQuorum(uint _upTicks, uint _downTicks) external pure returns(bool) {
+    function checkCuratorsQuorum(uint _upTicks, uint _downTicks) external pure onlyProposalContract returns(bool) {
         var allTicks = _upTicks.add(_downTicks);
         var curatorsQuorum = uint(_upTicks).mul(uint(100)).div(uint(allTicks));
         if (curatorsQuorum >= 70) {

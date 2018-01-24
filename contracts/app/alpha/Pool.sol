@@ -117,14 +117,16 @@ contract Pool is Ownable {
         msg.sender.transfer(rewarding);
     }
 
-
+    //REFACTOR! _value should be sent in wei from FRONT-END!
     function proposalFund(address _proposal, uint _value) external returns(uint) {
         require(msg.sender == quorumContract);
         var allowed = fundingPool.mul(10).div(100);
         if (_value * 1 ether <= allowed) {
+            fundingPool = fundingPool.sub(_value * 1 ether);
             _proposal.send(_value * 1 ether);
             return _value;
         } else {
+            fundingPool = fundingPool.sub(allowed);
             _proposal.send(allowed);
             return allowed;
         }

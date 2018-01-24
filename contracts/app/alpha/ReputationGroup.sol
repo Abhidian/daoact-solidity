@@ -18,7 +18,7 @@ contract ReputationGroup is Ownable {
     Curator curator;
 
     //set curator contract address
-    function setCurator(address _cur)public {
+    function setCurator(address _cur) public onlyOwner {
         curator = Curator(_cur);
     }
 
