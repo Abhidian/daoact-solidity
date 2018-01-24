@@ -214,7 +214,6 @@ contract Proposal {
     //direct funding
     function fundProposal() external payable onlyController checkStatus(Status.directFunding) returns(bool) {
         require(msg.value > 0);
-        require(status == Status.directFunding);
         funds = funds.add(msg.value);
 
         if (activism == false && now > id.add(72 hours)) {
