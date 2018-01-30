@@ -15,26 +15,39 @@ contract ReputationGroup is Ownable {
     uint groupC;
     uint groupD;
     uint reputationRate;
-    Curator curator;
+    address foundation;
+    Curator curatorContract;
 
     //set curator contract address
-    function setCurator(address _cur) public onlyOwner {
-        curator = Curator(_cur);
+    function setCuratorContractAddress(address _curatorContract) public onlyOwner {
+        require(_curatorContract != address(0));
+        curatorContract = Curator(_curatorContract);
     }
 
+    function setFoundationAddresses(address _foundation) public onlyOwner {
+        require(_foundation != address(0));
+        foundation = _foundation;
+    }
 
-    function getFullReputation () public view returns (uint) {
-        return curator.getFullReputation();
+    //only Foundation can call some functions
+    modifier onlyFoundation() {
+        require(msg.sender == foundation);
+        _;
+    }
+
+    //only Curator contract can call some functions
+    modifier onlyCurator() {
+        require(msg.sender == curatorContract);
+        _;
     }
 
     //groupA = 1, bottom 5%
     //groupB = 2
     //groupC = 3
     //groupD = 4
-
     //will be triggered by foundation by clicking button to calculate groups rate according to the reputation
     //'fullReputation' - reputation of all curators on the platform. Getting from the Curator contract
-    function calculateRates () public {
+    function calculateRates() public onlyFoundation {
         fullReputation = curator.getFullReputation();
         groupA = (fullReputation.mul(5)).div(100);
         groupB = (fullReputation.mul(35)).div(100);
@@ -43,7 +56,7 @@ contract ReputationGroup is Ownable {
 
     //method is calling by Curator contract after each reputation calculation for curator and assign for curator
     //new reputation group according to the new reputation score
-    function getGroupRate (uint _rep) public view returns (uint) {
+    function getGroupRate(uint _rep) public view onlyCurator returns (uint) {
         if (_rep <= groupA) {
             return 1;
         } if (_rep > groupA && _rep <= groupB) {
@@ -54,10 +67,6 @@ contract ReputationGroup is Ownable {
             return 4;
         }
         return reputationRate;
-    }
-
-    function returnA() public view returns (uint) {
-        return groupA;
     }
 
 }

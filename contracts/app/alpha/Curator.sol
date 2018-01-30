@@ -84,8 +84,14 @@ contract Curator is Ownable {
     }
 
     //only ProposalController contract can call some functions
-    modifier onlyProposalControler() {
+    modifier onlyProposalController() {
         require(msg.sender == proposalController);
+        _;
+    }
+
+    //only ReputationGroup contract can call some functions
+    modifier onlyReputationGroup() {
+        require(msg.sender == repGroup);
         _;
     }
 
@@ -110,23 +116,22 @@ contract Curator is Ownable {
     }
 
     //getter for Pool contract to extract curator's rewarding for payment (curator is going to click the button and gget rewarding every 30 days)
-
-    function getCuratorRewarding(address _curator) public view returns (uint) {
+    function getCuratorRewarding(address _curator) external view onlyProposalController returns (uint) {
         return curators[_curator].rewarding;
     }
 
     //getter for ReputationGroup contract to divide curators for different reputation group
-    function getFullReputation() public view returns (uint) {
+    function getFullReputation() external view onlyReputationGroup returns (uint) {
         return fullPlatformReputation;
     }
 
     //get curator's reputation from proposal contract in order to store data about reputation of those curators who uptick comment
-    function getReputation(address _curator) external view returns (uint) {
+    function getReputation(address _curator) external view onlyProposalController returns (uint) {
         return curators[_curator].reputation;
     }
 
     //calculate curator's effort
-    function calcEffort(uint _effort, address _curator) external onlyProposalControler {
+    function calcEffort(uint _effort, address _curator) external onlyProposalController {
         require(curators[_curator].exist == true);
         var (poolRewarding, timestamp)  = pool.getTransit();
         var ce7Balance = ce7Token.getBalance(_curator);
@@ -176,14 +181,14 @@ contract Curator is Ownable {
         curators[_curator].rewarding = curators[_curator].effortA*oneEffortA + curators[_curator].effortB * oneEffortB + curators[_curator].effortC * oneEffortC;
     }
 
-    //poolController call these two functions (calcPos, calcNeg - positive and negative reputation)
+    //ProposalController call these two functions (calcPos, calcNeg - positive and negative reputation)
     //one by one to calculate reputation and rates of group
     //according to curator's reputation. Also here we calculate 'fullPlatformReputation'
     //groupA = 1
     //groupB = 2
     //groupC = 3
     //groupD = 4
-    function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public onlyProposalControler returns (uint) {
+    function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public onlyProposalController returns (uint) {
         require(curators[_curator].exist == true);
         if (_activation == true && _quorum == true && _uptick == true) {
             curators[_curator].reputation += activationQuorumUptick;
@@ -200,7 +205,7 @@ contract Curator is Ownable {
         curators[_curator].reputationGroup = repGroup.getGroupRate(curators[_curator].reputation);
     }
 
-    function calcNeg(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public onlyProposalControler returns (uint) {
+    function calcNeg(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public onlyProposalController returns (uint) {
         require(curators[_curator].exist == true);
         if (_activation == false && _quorum == false && _uptick == true) {
             if (curators[_curator].reputation <= noActivationNoQuorumUptick) {
@@ -234,7 +239,7 @@ contract Curator is Ownable {
 
     //proposal contract checks curator's limits for 24 hours once he made some action with proposal
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == comment, 5 == commentLike
-    function limits(address _curator, uint8 _action) external onlyProposalControler returns (bool) {
+    function limits(address _curator, uint8 _action) external onlyProposalController returns (bool) {
         if (now < (curators[_curator].timestampLimits + 24 hours)) {
             if (_action == 1 || _action == 2) {
                 if (curators[_curator].limitLike > 0) {
@@ -345,6 +350,7 @@ contract Curator is Ownable {
         }
     }
 
+    // get limits to place in ui by curator's address
      function getLimits (address _curator) public returns (uint,uint,uint,uint) {
          require(curators[_curator].exist == true);
          return (
@@ -355,6 +361,7 @@ contract Curator is Ownable {
          );
      }
 
+    // check if curator is existed
      function checkExistence(address _curator) public view returns(bool) {
         return curators[_curator].exist;
     }
