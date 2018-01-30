@@ -89,7 +89,7 @@ contract Proposal {
         description = _description;
         videoLink = _videoLink;
         documentsLink = _documentsLink;
-        value = _value.mul(1 ether);
+        value = _value;
     }
 
     //modifiers

@@ -46,8 +46,8 @@ contract ProposalController is Ownable {
     }
 
     //activizm - 1; not activizm - 2
-    function creatProposal(address _approver, uint _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
-        if (_value <= 22) {
+    function createProposal(address _approver, uint _activism, bytes32 _title, bytes32 _description, bytes32 _videoLink, bytes32 _documentsLink, uint _value) public payable returns(Proposal proposal) {
+        if (_value <= 22 * 1 ether) {
             require(msg.value == feeMin);
         } else {
             require(msg.value == feeMax);

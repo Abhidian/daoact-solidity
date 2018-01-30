@@ -121,9 +121,9 @@ contract Pool is Ownable {
     function proposalFund(address _proposal, uint _value) external returns(uint) {
         require(msg.sender == quorumContract);
         var allowed = fundingPool.mul(10).div(100);
-        if (_value * 1 ether <= allowed) {
-            fundingPool = fundingPool.sub(_value * 1 ether);
-            _proposal.transfer(_value * 1 ether);
+        if (_value <= allowed) {
+            fundingPool = fundingPool.sub(_value);
+            _proposal.transfer(_value);
             return _value;
         } else {
             fundingPool = fundingPool.sub(allowed);
