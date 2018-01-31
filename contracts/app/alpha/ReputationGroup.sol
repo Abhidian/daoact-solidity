@@ -16,12 +16,14 @@ contract ReputationGroup is Ownable {
     uint groupD;
     uint reputationRate;
     address foundation;
+    address curatorAddress;
     Curator curatorContract;
 
     //set curator contract address
     function setCuratorContractAddress(address _curatorContract) public onlyOwner {
         require(_curatorContract != address(0));
         curatorContract = Curator(_curatorContract);
+        curatorAddress = _curatorContract;
     }
 
     function setFoundationAddresses(address _foundation) public onlyOwner {
@@ -37,7 +39,7 @@ contract ReputationGroup is Ownable {
 
     //only Curator contract can call some functions
     modifier onlyCurator() {
-        require(msg.sender == curatorContract);
+        require(msg.sender == curatorAddress);
         _;
     }
 
@@ -48,7 +50,7 @@ contract ReputationGroup is Ownable {
     //will be triggered by foundation by clicking button to calculate groups rate according to the reputation
     //'fullReputation' - reputation of all curators on the platform. Getting from the Curator contract
     function calculateRates() public onlyFoundation {
-        fullReputation = curator.getFullReputation();
+        fullReputation = curatorContract.getFullReputation();
         groupA = (fullReputation.mul(5)).div(100);
         groupB = (fullReputation.mul(35)).div(100);
         groupC = (fullReputation.mul(80)).div(100);

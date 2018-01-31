@@ -15,6 +15,7 @@ contract Curator is Ownable {
     ReputationGroup repGroup;
     Pool pool;
 
+    address reputationGroupAddress;
     uint fullPlatformReputation;
     uint fullEffortA;  //group A according to the reputation
     uint fullEffortB;  //group C according to the reputation
@@ -76,6 +77,7 @@ contract Curator is Ownable {
     function setReputationGroupAddress(address _repGroup) public onlyOwner {
          require(_repGroup != address(0));
          repGroup = ReputationGroup(_repGroup);
+         reputationGroupAddress = _repGroup;
     }
 
     function setProposalControllerAddress (address _proposalController) public onlyOwner {
@@ -91,7 +93,7 @@ contract Curator is Ownable {
 
     //only ReputationGroup contract can call some functions
     modifier onlyReputationGroup() {
-        require(msg.sender == repGroup);
+        require(msg.sender == reputationGroupAddress);
         _;
     }
 
@@ -351,7 +353,7 @@ contract Curator is Ownable {
     }
 
     // get limits to place in ui by curator's address
-     function getLimits (address _curator) public returns (uint,uint,uint,uint) {
+     function getLimits (address _curator) public view returns (uint,uint,uint,uint) {
          require(curators[_curator].exist == true);
          return (
          curators[_curator].limitLike,
