@@ -193,4 +193,8 @@ contract ProposalController is Ownable {
     function isTicked(Proposal proposal, address _curator) public view returns(bool) {
         return proposal.isTickedByCurator(_curator);
     }
+
+    function curatorReputationExistence(Proposal proposal, address _curator) public view returns(bool) {
+        return proposal.isReputationExisted(_curator);
+    }
 }

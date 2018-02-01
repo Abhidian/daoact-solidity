@@ -285,5 +285,9 @@ contract Proposal {
         return comments[_index].author;
     }
 
+    function isReputationExisted(address _curator) view onlyController returns(bool) {
+        return reputationExisted[_curator];
+    }
+
     function() public payable {}
 }
