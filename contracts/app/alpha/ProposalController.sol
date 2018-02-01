@@ -41,8 +41,12 @@ contract ProposalController is Ownable {
 
     event NewProposalForVoting(address indexed _proposal);
 
-    function ProposalController() public {
+    function ProposalController(address _vote, address _pool, address _curator, address _quorum) public {
         owner = msg.sender;
+        voteContract = Vote(_vote);
+        poolContract = Pool(_pool);
+        curatorContract = Curator(_curator);
+        quorumContract = Quorum(_quorum);
     }
 
     //activizm - 1; not activizm - 2
@@ -56,13 +60,6 @@ contract ProposalController is Ownable {
         proposal = new Proposal(msg.sender, _approver, _activism, _title, _description, _videoLink, _documentsLink, _value);
         proposals.push(proposal);
         return proposal;
-    }
-
-    function setDependencies(address _vote, address _pool, address _curator, address _quorum) public onlyOwner {
-        voteContract = Vote(_vote);
-        poolContract = Pool(_pool);
-        curatorContract = Curator(_curator);
-        quorumContract = Quorum(_quorum);
     }
 
     //tick proposal by curator
