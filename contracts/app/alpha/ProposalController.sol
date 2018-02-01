@@ -147,11 +147,12 @@ contract ProposalController is Ownable {
         curatorContract.calcNeg(msg.sender, activated, quorum, uptick, downtick, flag);
     }
 
-    //getters
+    //get lis of proposals
     function getProposalsList() public view returns(address[]) {
         return proposals;
     }
 
+    // get info about exact proposal
     function getProposal(Proposal proposal) public view returns(uint, bytes32, bytes32, bytes32, bytes32, uint, uint, uint) {
         return (
             proposal.id(),
@@ -165,6 +166,7 @@ contract ProposalController is Ownable {
         );
     }
 
+    // get info about exact proposal
     function getProposalInfo(Proposal proposal) public view returns(uint, uint, uint, bool, uint, uint, uint, bool) {
         return (
             proposal.totalUpticks(),
@@ -182,10 +184,12 @@ contract ProposalController is Ownable {
         return proposal.getComment(_index, _curator);
     }
 
+    // mark that proposal was voted by exact citizen
     function isVoted(Proposal proposal, address _citizen) public view returns(bool) {
         return proposal.isVotedByCitizen(_citizen);
     }
 
+    // mark that proposal was ticked by exact curator
     function isTicked(Proposal proposal, address _curator) public view returns(bool) {
         return proposal.isTickedByCurator(_curator);
     }

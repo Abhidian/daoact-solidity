@@ -147,6 +147,7 @@ contract Proposal {
         return true;
     }
 
+    // change status of the proposal
     function setStatus(uint8 _status) external onlyController returns(bool) {
         if (_status == 1) {
             status = Status.voting;
@@ -245,7 +246,8 @@ contract Proposal {
         }
     }
 
-    //Should be called by curator from controller
+    //Should be called by curator from controller in order to check if proposal is closed, calculate reputation for exact curator,
+    // and indicates if reputation was got
     function getReputation(address _curator) external onlyController checkStatus(Status.directFunding) returns(bool, bool, bool, bool, bool) {
         require(reputationExisted[_curator] == true);
         reputationExisted[_curator] = false;
@@ -258,11 +260,12 @@ contract Proposal {
         );
     }
 
-    //getters
+    // get info for UI not to show proposals for citizens if it was voted by him
     function isVotedByCitizen(address _citizen) external view onlyController returns(bool) {
         return voted[_citizen];
     }
 
+    // get info for UI not to show proposals for curator if it was ticked by him
     function isTickedByCurator(address _curator) external view onlyController returns(bool) {
         return reactions[_curator].reacted;
     }

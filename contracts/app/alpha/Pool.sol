@@ -82,6 +82,7 @@ contract Pool is Ownable {
         fundingPool = fundingPool.add(msg.value);
     }
 
+    //accept direct funding for proposal, call form ProposalController contract
     function fromProposalDirectFunding() external payable returns(bool) {
         require(msg.value > 0);
         require(msg.sender == proposalController);
@@ -96,7 +97,7 @@ contract Pool is Ownable {
         return true;
     }
 
-    // get transit balance and timestamp
+    // get transit balance and timestamp to pay rewarding
     function getTransit() external returns(uint, uint) {
         if (transit.timestamp != 0 && now < transit.timestamp + 1 days) {
             return (transit.balance, transit.timestamp);
@@ -109,7 +110,7 @@ contract Pool is Ownable {
         }
     }
 
-    //withdrawals
+    // withdraw rewarding which was gained by curator. Ablke to get it by clicking button
     function curatorReward() public {
         require(now > timestamp.add(30 days));
         var rewarding = curatorContract.getCuratorRewarding(msg.sender);
@@ -117,7 +118,7 @@ contract Pool is Ownable {
         msg.sender.transfer(rewarding);
     }
 
-    //REFACTOR! _value should be sent in wei from FRONT-END!
+    // will be called once quorum is reached to fund pool with max 10% from pool
     function proposalFund(address _proposal, uint _value) external returns(uint) {
         require(msg.sender == quorumContract);
         var allowed = fundingPool.mul(10).div(100);

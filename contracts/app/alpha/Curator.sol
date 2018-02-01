@@ -22,15 +22,15 @@ contract Curator is Ownable {
     uint fullEffortC;  //group A according to the reputation
 
     struct CuratorInstance {
-    bool exist;
-    uint reputation;
+    bool exist;  //to check if curator exists
+    uint reputation;  // reputation that accumulating during his work on the platform and impacts on the limits
     uint rewarding;
     uint reputationGroup;
-    uint limitLike;
+    uint limitLike;   //limits
     uint limitFlag;
     uint limitComment;
     uint limitLikeComment;
-    uint timestampLimits;
+    uint timestampLimits;  // when limits was done
     uint effortA;  //these effort groups is taken according to the number of tokens held every time when effort is calculating
     uint effortB;
     uint effortC;
