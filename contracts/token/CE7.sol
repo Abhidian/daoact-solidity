@@ -1,22 +1,22 @@
 /**
- *  ACTToken.sol v1.0.0
+ *  CE7.sol v1.0.0
  * 
  *  Bilal Arif - https://twitter.com/furusiyya_
  *  Draglet GbmH
  */
 
-pragma solidity 0.4.18;
+pragma solidity ^0.4.18;
 
 import '../misc/SafeMath.sol';
 import '../misc/Pausable.sol';
 import '../misc/ReentrancyGuard.sol';
 
 
-contract ACTToken is Pausable, ReentrancyGuard{
+contract ACTToken is Pausable, ReentrancyGuard {
 
   using SafeMath for *;
 
-  string constant public name = "Curation Engine 7";
+  string constant public name = "ACT Curation Engine";
   string constant public symbol = "CE7";
   uint8 constant public decimals = 4;
   uint256 private supply = 10e6 * 1e4; // 10 Million + 4 decimals
@@ -28,10 +28,9 @@ contract ACTToken is Pausable, ReentrancyGuard{
   event Approval(address indexed owner, address indexed spender, uint256 value);
   event Transfer(address indexed from, address indexed to, uint256 value);
 
-  function ACTToken(address setOwner, address setTokenOwner) public
-  {
-    owner = setOwner;
-    balances[setTokenOwner] = supply;
+  function ACTToken() public {
+    owner = msg.sender;
+    balances[msg.sender] = supply;
   }
 
 
@@ -126,7 +125,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
     return true;
   }
 
-  function totalSupply() public constant returns (uint256){
+  function totalSupply() public constant returns (uint256) {
     return supply;
   }
 
@@ -139,8 +138,8 @@ contract ACTToken is Pausable, ReentrancyGuard{
   event Migrate(address indexed _from, address indexed _to, uint256 _value);
   event Upgrading(bool status);
 
-  function migrationAgent() external constant returns(address){ return agent; }
-  function upgradingEnabled()  external constant returns(bool){ return upgrading; }
+  function migrationAgent() external constant returns(address) { return agent; }
+  function upgradingEnabled()  external constant returns(bool) { return upgrading; }
 
   /**
    * @notice Migrate tokens to the new token contract.
@@ -156,7 +155,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
     supply = supply.sub(_value);
     totalMigrated = totalMigrated.add(_value);
     
-    if(!agent.migrateFrom(msg.sender, _value)){
+    if (!agent.migrateFrom(msg.sender, _value)) {
       revert();
     }
     Migrate(msg.sender, agent, _value);
@@ -170,11 +169,11 @@ contract ACTToken is Pausable, ReentrancyGuard{
   function setMigrationAgent(address _agent) external isUpgrading onlyOwner {
     require(_agent != 0x00);
     agent = MigrationAgent(_agent);
-    if(!agent.isMigrationAgent()){
+    if (!agent.isMigrationAgent()) {
       revert();
     }
     
-    if(agent.originalSupply() != supply){
+    if (agent.originalSupply() != supply) {
       revert();
     }
   }
@@ -183,7 +182,7 @@ contract ACTToken is Pausable, ReentrancyGuard{
    * @notice Enable upgrading to allow tokens migration to new contract
    * process.
    */
-  function tweakUpgrading() external onlyOwner{
+  function tweakUpgrading() external onlyOwner {
       upgrading = !upgrading;
       Upgrading(upgrading);
   }

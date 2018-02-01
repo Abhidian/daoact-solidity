@@ -1,4 +1,4 @@
-const ACTToken = artifacts.require("./ACTToken.sol");
+const ACTToken = artifacts.require("./CE7.sol");
 const GenericToken = artifacts.require("./GenericToken.sol")
 const BigNumber = web3.BigNumber
 

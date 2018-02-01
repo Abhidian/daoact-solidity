@@ -3,15 +3,12 @@
 ### Example user template
 
 # IntelliJ project files
-.idea
-*.iml
 out
 gen
 
 #
-node_modules/*
-build/*
-test
-
-#Lets ignore tests folders because it's generated code by transpiling typescript tests in tsTests folder
-test/*
+.idea/
+node_modules/
+build/
+bin/
+test/
