@@ -123,12 +123,12 @@ contract Curator is Ownable {
     }
 
     //getter for ReputationGroup contract to divide curators for different reputation group
-    function getFullReputation() external view onlyReputationGroup returns (uint) {
+    function getFullReputation() public view returns (uint) {
         return fullPlatformReputation;
     }
 
     //get curator's reputation from proposal contract in order to store data about reputation of those curators who uptick comment
-    function getReputation(address _curator) external view onlyProposalController returns (uint) {
+    function getReputation(address _curator) public view returns (uint) {
         return curators[_curator].reputation;
     }
 
