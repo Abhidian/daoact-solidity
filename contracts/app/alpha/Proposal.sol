@@ -246,9 +246,10 @@ contract Proposal {
         }
     }
 
-    //Should be called by curator from controller in order to check if proposal is closed, calculate reputation for exact curator,
-    // and indicates if reputation was got
-    function getReputation(address _curator) external onlyController checkStatus(Status.directFunding) returns(bool, bool, bool, bool, bool) {
+    //Should be called by curator from controller in order to check if proposal has status direct funding or closed,
+    //calculate reputation for exact curator, and indicates if reputation was got
+    function getReputation(address _curator) external onlyController returns(bool, bool, bool, bool, bool) {
+        require(status == Status.directFunding || status == Status.closed);
         require(reputationExisted[_curator] == true);
         reputationExisted[_curator] = false;
         return (
