@@ -108,11 +108,7 @@ contract Proposal {
     //curators ticks
     //1 == uptick proposal, 2 == downtick proposal, 3 == flag proposal, 4 == not activism
     function tick(address _curator, uint8 _tick) external onlyController checkStatus(Status.curation) returns(bool) {
-        require(reactions[_curator].flag == false);
-        require(reactions[_curator].uptick == false);
-        require(reactions[_curator].downtick == false);
-        require(reactions[_curator].notActivism == false);
-        require(reactions[_curator].reacted == false);
+        require(!reactions[_curator].reacted);
         reactions[_curator].reacted = true;
         if (_tick == 1) {
             totalUpticks = totalUpticks.add(1);
@@ -127,7 +123,7 @@ contract Proposal {
                 status = Status.closed;
             }
         } else if (_tick == 4) {
-            reactions[_curator].notActivism == true;
+            reactions[_curator].notActivism = true;
             notActivism = notActivism.add(1);
             if (notActivism >= 5) {
                 activism = false;
@@ -142,7 +138,7 @@ contract Proposal {
     }
 
     function setActivated() external onlyController returns(bool) {
-        require(activated == false);
+        require(!activated);
         activated = true;
         return true;
     }
@@ -162,7 +158,7 @@ contract Proposal {
     }
 
     function setQuorumReached() external onlyController returns(bool) {
-        require(quorumReached == false);
+        require(!quorumReached);
         quorumReached = true;
         return true;
     }
@@ -185,7 +181,7 @@ contract Proposal {
     //request should include index of comment
     //should save index on middleware during get proccess in order to request exact comment!
     function uptickComment(uint _index, address _curator) external onlyController checkStatus(Status.curation) {
-        require(comments[_index].upticked[_curator] == false);
+        require(!comments[_index].upticked[_curator]);
         comments[_index].upticked[_curator] = true;
         comments[_index].totalUpticks = comments[_index].totalUpticks.add(1);
     }
@@ -196,7 +192,7 @@ contract Proposal {
     // 1 == vote up, 2 == vote down
     function vote(address _voter, uint8 _vote) external onlyController checkStatus(Status.voting) returns(bool) {
 
-        require(voted[_voter] == false);
+        require(!voted[_voter]);
         voted[_voter] = true;
 
         if (_vote == 1) {
@@ -233,10 +229,10 @@ contract Proposal {
 
     //submitter funds request
     function wirthdrawFunds(address _requester) external onlyController checkStatus(Status.closed) {
-        require(withdrawn == false);
+        require(!withdrawn);
         require(_requester == submitter || _requester == approver);
         if (_requester == submitter) {
-            require(pendingWithdraw == false);
+            require(!pendingWithdraw);
             pendingWithdraw = true;
         }
         if (_requester == approver) {
@@ -246,11 +242,11 @@ contract Proposal {
         }
     }
 
-    //Should be called by curator from controller in order to check if proposal has status direct funding or closed,
-    //calculate reputation for exact curator, and indicates if reputation was got
+    //Should be called by curator from controller in order to check if proposal is closed, calculate reputation for exact curator,
+    // and indicates if reputation was got
     function getReputation(address _curator) external onlyController returns(bool, bool, bool, bool, bool) {
         require(status == Status.directFunding || status == Status.closed);
-        require(reputationExisted[_curator] == true);
+        require(reputationExisted[_curator]);
         reputationExisted[_curator] = false;
         return (
             activated,

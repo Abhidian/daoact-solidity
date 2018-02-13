@@ -51,9 +51,13 @@ contract ReputationGroup is Ownable {
     //'fullReputation' - reputation of all curators on the platform. Getting from the Curator contract
     function calculateRates() public onlyFoundation {
         fullReputation = curatorContract.getFullReputation();
-        groupA = (fullReputation.mul(5)).div(100);
-        groupB = (fullReputation.mul(35)).div(100);
-        groupC = (fullReputation.mul(80)).div(100);
+        groupA = calcReputationGroup(5, fullReputation);
+        groupB = calcReputationGroup(35, fullReputation);
+        groupC = calcReputationGroup(80, fullReputation);
+    }
+
+    function calcReputationGroup(uint _rate, uint _fullRep) private pure returns(uint){
+        return (_fullRep.mul(_rate)).div(100);
     }
 
     //method is calling by Curator contract after each reputation calculation for curator and assign for curator
