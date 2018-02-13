@@ -134,7 +134,7 @@ contract Curator is Ownable {
 
     //calculate curator's effort
     function calcEffort(uint _effort, address _curator) external onlyProposalController {
-        require(curators[_curator].exist == true);
+        require(curators[_curator].exist);
         var (poolRewarding, timestamp)  = pool.getTransit();
         var ce7Balance = ce7Token.getBalance(_curator);
 
@@ -170,7 +170,7 @@ contract Curator is Ownable {
     }
 
     function calculateRewarding(address _curator, uint poolRewarding) internal {
-        require(curators[_curator].exist == true);
+        require(curators[_curator].exist);
         uint oneEffortA;
         uint oneEffortB;
         uint oneEffortC;
@@ -191,16 +191,16 @@ contract Curator is Ownable {
     //groupC = 3
     //groupD = 4
     function calcPos(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public onlyProposalController returns (uint) {
-        require(curators[_curator].exist == true);
-        if (_activation == true && _quorum == true && _uptick == true) {
+        require(curators[_curator].exist);
+        if (_activation && _quorum && _uptick) {
             curators[_curator].reputation += activationQuorumUptick;
             fullPlatformReputation += activationQuorumUptick;
         }
-        if (_activation == false && _quorum == false && (_downtick == true || _flag == true)) {
+        if (!_activation && !_quorum && (_downtick|| _flag)) {
             curators[_curator].reputation = curators[_curator].reputation.add(noActivationNoQuorumDowntick);
             fullPlatformReputation = fullPlatformReputation.add(activationQuorumUptick);
         }
-        if (_activation == true && _quorum == false && (_downtick == true || _flag == true)) {
+        if (_activation&& !_quorum && (_downtick || _flag)) {
             curators[_curator].reputation = curators[_curator].reputation.add(activationNoQuorumDowntick);
             fullPlatformReputation = fullPlatformReputation.add(activationQuorumUptick);
         }
@@ -208,8 +208,8 @@ contract Curator is Ownable {
     }
 
     function calcNeg(address _curator, bool _activation, bool _quorum, bool _uptick, bool _downtick, bool _flag) public onlyProposalController returns (uint) {
-        require(curators[_curator].exist == true);
-        if (_activation == false && _quorum == false && _uptick == true) {
+        require(curators[_curator].exist);
+        if (!_activation && !_quorum && _uptick) {
             if (curators[_curator].reputation <= noActivationNoQuorumUptick) {
                 fullPlatformReputation -= curators[_curator].reputation;
                 curators[_curator].reputation = 0;
@@ -218,7 +218,7 @@ contract Curator is Ownable {
                 fullPlatformReputation -= activationQuorumDowntick;
             }
         }
-        if (_activation == true && _quorum == false && _uptick == true) {
+        if (_activation && !_quorum && _uptick) {
             if (curators[_curator].reputation <= activationNoQuorumUptick) {
                 fullPlatformReputation -= curators[_curator].reputation;
                 curators[_curator].reputation = 0;
@@ -227,7 +227,7 @@ contract Curator is Ownable {
                 fullPlatformReputation -= activationQuorumDowntick;
             }
         }
-        if (_activation == true && _quorum == true && (_downtick == true || _flag == true)) {
+        if (_activation && _quorum && (_downtick || _flag)) {
             if (curators[_curator].reputation <= activationQuorumDowntick) {
                 fullPlatformReputation -= curators[_curator].reputation;
                 curators[_curator].reputation = 0;
@@ -320,7 +320,7 @@ contract Curator is Ownable {
     //groupD = 4
     //update curator's limits if 24 hours is passed
     function setLimits(address _curator) internal {
-        require(curators[_curator].exist == true);
+        require(curators[_curator].exist);
         var ce7Balance = ce7Token.getBalance(_curator);
         if (curators[_curator].reputationGroup == 1) {
             curators[_curator].limitLike = 30;
@@ -354,7 +354,7 @@ contract Curator is Ownable {
 
     // get limits to place in ui by curator's address
      function getLimits (address _curator) public view returns (uint,uint,uint,uint) {
-         require(curators[_curator].exist == true);
+         require(curators[_curator].exist);
          return (
          curators[_curator].limitLike,
          curators[_curator].limitFlag,

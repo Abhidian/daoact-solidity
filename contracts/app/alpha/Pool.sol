@@ -132,3 +132,4 @@ contract Pool is Ownable {
             return allowed;
         }
     }
+}
