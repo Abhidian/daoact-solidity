@@ -20,7 +20,7 @@ contract Proposal {
         mapping(address => bool) upticked;
     }
 
-    //curators reaction
+    //curators reaction struct
     struct Reaction {
         bool uptick;
         bool downtick;
